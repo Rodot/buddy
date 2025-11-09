@@ -13,21 +13,21 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "@react-router/node": "^7.9.2",
-    "@react-router/serve": "^7.9.2",
-    "isbot": "^5.1.31",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-router": "^7.9.2"
+    "@react-router/node": "^7.9.5",
+    "@react-router/serve": "^7.9.5",
+    "isbot": "^5.1.32",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router": "^7.9.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.56.1",
-    "@react-router/dev": "^7.9.2",
-    "@tailwindcss/vite": "^4.1.13",
-    "@types/node": "^22",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
+    "@react-router/dev": "^7.9.5",
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^24",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
     "daisyui": "^5.4.7",
@@ -35,9 +35,9 @@
     "globals": "^16.5.0",
     "markdownlint-cli": "^0.45.0",
     "prettier": "^3.6.2",
-    "tailwindcss": "^4.1.13",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.7",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }
