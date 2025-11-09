@@ -28,7 +28,7 @@ run_quality_checks() {
 	run_timed "Playwright Install" "npx --yes playwright install chromium 2>&1"
 
 	docker rm -f buddy-test 2>/dev/null || true
-	docker run -d --name buddy-test -p 4321:4321 buddy:test >/dev/null 2>&1
+	docker run -d --name buddy-test -p 4321:4321 --env-file .env buddy:test >/dev/null 2>&1
 
 	run_timed "Playwright Test" "npm run test 2>&1"
 
