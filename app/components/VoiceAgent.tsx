@@ -28,9 +28,7 @@ export default function VoiceAgent() {
 
   const connect = async () => {
     const agent = new RealtimeAgent({
-      name: "Buddy",
-      instructions:
-        "You are an emotional support companion. If the conversation is paused or over, answer [NO-COMMENT], DO NOT use a phrase like 'I'm here if you need anything'. If the user didn't explicitly engage with you, answer [NO-COMMENT]. Otherwise, you answer a single sentence of 1 to 20 words.",
+      name: "Transcriber",
     });
 
     const session = new RealtimeSession(agent, {
@@ -48,17 +46,24 @@ export default function VoiceAgent() {
 
     session.transport.updateSessionConfig({
       outputModalities: ["text"],
-    });
-
-    session.on("agent_end", (_context, _agent, output) => {
-      showMessage(output);
+      audio: {
+        input: {
+          transcription: { model: "gpt-4o-mini-transcribe" },
+        },
+      },
     });
 
     session.on("transport_event", (event) => {
-      if (event.type === "input_audio_buffer.speech_started") {
-        setIsVadActive(true);
-      } else if (event.type === "input_audio_buffer.speech_stopped") {
-        setIsVadActive(false);
+      switch (event.type) {
+        case "input_audio_buffer.speech_started":
+          setIsVadActive(true);
+          break;
+        case "input_audio_buffer.speech_stopped":
+          setIsVadActive(false);
+          break;
+        case "conversation.item.input_audio_transcription.completed":
+          showMessage(event.transcript);
+          break;
       }
     });
 
