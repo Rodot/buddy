@@ -31,7 +31,7 @@ export default [
     },
   },
   {
-    files: ["playwright.config.ts", "tests/**/*.ts"],
+    files: ["playwright.config.ts", "tests/**/*.ts", "app/routes/api.*.ts"],
     languageOptions: {
       parser: tsParser,
       globals: {

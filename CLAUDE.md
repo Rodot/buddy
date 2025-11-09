@@ -17,8 +17,8 @@
 ### UI
 
 - Tailwind
-- Daisy UI
-- mdi icons
+- Daisy UI, theme in app/app.css
+- Icons from "@mdi/js" using app/components/MdiIcon.tsx
 
 ### Quality
 

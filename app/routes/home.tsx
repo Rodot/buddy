@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import FullscreenButton from "~/components/FullscreenButton";
+import VoiceAgent from "~/components/VoiceAgent";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
@@ -8,8 +8,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <p>Hello, buddy.</p>
-      <FullscreenButton />
+      <VoiceAgent />
     </div>
   );
 }
