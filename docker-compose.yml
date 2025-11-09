@@ -1,0 +1,6 @@
+services:
+  buddy:
+    image: ghcr.io/rodot/buddy:latest
+    ports:
+      - "8000:4321"
+    restart: unless-stopped
