@@ -31,6 +31,9 @@ run_quality_checks() {
 	docker run -d --name buddy-test -p 4321:4321 buddy:test >/dev/null 2>&1
 
 	run_timed "Playwright Test" "npm run test 2>&1"
+
+	echo ""
+	echo "👉️ Running at http://localhost:4321"
 }
 
 run_timed "Quality Checks" "run_quality_checks"
