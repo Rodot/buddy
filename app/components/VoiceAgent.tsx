@@ -1,12 +1,13 @@
 import { useState, useRef } from "react";
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
-import { mdiClose } from "@mdi/js";
+import { mdiClose, mdiMicrophone } from "@mdi/js";
 import MdiIcon from "./MdiIcon";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function VoiceAgent() {
   const [isConnected, setIsConnected] = useState(false);
   const [message, setMessage] = useState<string>("");
+  const [isVadActive, setIsVadActive] = useState(false);
   const sessionRef = useRef<RealtimeSession | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,6 +54,14 @@ export default function VoiceAgent() {
       showMessage(output);
     });
 
+    session.on("transport_event", (event) => {
+      if (event.type === "input_audio_buffer.speech_started") {
+        setIsVadActive(true);
+      } else if (event.type === "input_audio_buffer.speech_stopped") {
+        setIsVadActive(false);
+      }
+    });
+
     try {
       await document.documentElement.requestFullscreen();
     } catch (error) {
@@ -83,6 +92,7 @@ export default function VoiceAgent() {
 
     setIsConnected(false);
     setMessage("");
+    setIsVadActive(false);
   };
 
   return (
@@ -93,13 +103,25 @@ export default function VoiceAgent() {
         </button>
       )}
       {isConnected && (
-        <button
-          onClick={disconnect}
-          className="fixed top-4 right-4 btn btn-circle"
-          aria-label="Disconnect"
-        >
-          <MdiIcon path={mdiClose} size={24} />
-        </button>
+        <>
+          <div
+            className="fixed top-4 right-20 btn btn-circle btn-ghost pointer-events-none"
+            aria-label="Voice activity"
+          >
+            <MdiIcon
+              path={mdiMicrophone}
+              size={24}
+              className={isVadActive ? "text-error" : "text-white"}
+            />
+          </div>
+          <button
+            onClick={disconnect}
+            className="fixed top-4 right-4 btn btn-circle"
+            aria-label="Disconnect"
+          >
+            <MdiIcon path={mdiClose} size={24} />
+          </button>
+        </>
       )}
       <AnimatePresence mode="wait">
         {isConnected && message && (
