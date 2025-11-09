@@ -1,19 +1,13 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useRef,
-  useCallback,
-} from "react";
+import { createContext, useContext, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
 
 interface TranscriptionContextValue {
   isConnected: boolean;
-  message: string;
   isVadActive: boolean;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
+  onTranscription: (callback: (transcript: string) => void) => () => void;
 }
 
 const TranscriptionContext = createContext<
@@ -28,27 +22,20 @@ export function TranscriptionProvider({
   children,
 }: TranscriptionProviderProps) {
   const [isConnected, setIsConnected] = useState(false);
-  const [message, setMessage] = useState<string>("");
   const [isVadActive, setIsVadActive] = useState(false);
   const sessionRef = useRef<RealtimeSession | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transcriptionListenersRef = useRef<Set<(transcript: string) => void>>(
+    new Set(),
+  );
 
-  const showMessage = useCallback((text: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const onTranscription = (callback: (transcript: string) => void) => {
+    transcriptionListenersRef.current.add(callback);
+    return () => {
+      transcriptionListenersRef.current.delete(callback);
+    };
+  };
 
-    setMessage(text);
-
-    const wordCount = Math.ceil(text.length / 5);
-    const displayDuration = Math.max(2000, wordCount * 300);
-
-    timeoutRef.current = setTimeout(() => {
-      setMessage("");
-    }, displayDuration);
-  }, []);
-
-  const connect = useCallback(async () => {
+  const connect = async () => {
     const agent = new RealtimeAgent({
       name: "Transcriber",
     });
@@ -84,7 +71,9 @@ export function TranscriptionProvider({
           setIsVadActive(false);
           break;
         case "conversation.item.input_audio_transcription.completed":
-          showMessage(event.transcript);
+          transcriptionListenersRef.current.forEach((listener) => {
+            listener(event.transcript);
+          });
           break;
       }
     });
@@ -96,17 +85,12 @@ export function TranscriptionProvider({
     }
 
     setIsConnected(true);
-  }, [showMessage]);
+  };
 
-  const disconnect = useCallback(async () => {
+  const disconnect = async () => {
     if (sessionRef.current) {
       sessionRef.current.close();
       sessionRef.current = null;
-    }
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
     }
 
     try {
@@ -118,16 +102,15 @@ export function TranscriptionProvider({
     }
 
     setIsConnected(false);
-    setMessage("");
     setIsVadActive(false);
-  }, []);
+  };
 
   const value: TranscriptionContextValue = {
     isConnected,
-    message,
     isVadActive,
     connect,
     disconnect,
+    onTranscription,
   };
 
   return (

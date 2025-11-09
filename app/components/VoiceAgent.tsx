@@ -2,10 +2,37 @@ import { mdiClose, mdiMicrophone } from "@mdi/js";
 import MdiIcon from "./MdiIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranscription } from "../providers/transcription.provider";
+import { useState, useEffect, useRef } from "react";
 
 export default function VoiceAgent() {
-  const { isConnected, message, isVadActive, connect, disconnect } =
+  const { isConnected, isVadActive, connect, disconnect, onTranscription } =
     useTranscription();
+  const [transcript, setTranscript] = useState("");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onTranscription((text: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      setTranscript(text);
+
+      const wordCount = Math.ceil(text.length / 5);
+      const displayDuration = Math.max(2000, wordCount * 300);
+
+      timeoutRef.current = setTimeout(() => {
+        setTranscript("");
+      }, displayDuration);
+    });
+
+    return () => {
+      unsubscribe();
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [onTranscription]);
 
   return (
     <div className="p-4">
@@ -36,9 +63,9 @@ export default function VoiceAgent() {
         </>
       )}
       <AnimatePresence mode="wait">
-        {isConnected && message && (
+        {isConnected && transcript && (
           <motion.p
-            key={message}
+            key={transcript}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -48,7 +75,7 @@ export default function VoiceAgent() {
             }}
             className="text-white text-center"
           >
-            {message}
+            {transcript}
           </motion.p>
         )}
       </AnimatePresence>
