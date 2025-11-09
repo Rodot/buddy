@@ -2,17 +2,34 @@ import { useState, useRef } from "react";
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
 import { mdiClose } from "@mdi/js";
 import MdiIcon from "./MdiIcon";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function VoiceAgent() {
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
   const sessionRef = useRef<RealtimeSession | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showMessage = (text: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setMessage(text);
+
+    const wordCount = Math.ceil(text.length / 5);
+    const displayDuration = Math.max(2000, wordCount * 300);
+
+    timeoutRef.current = setTimeout(() => {
+      setMessage("");
+    }, displayDuration);
+  };
 
   const connect = async () => {
     const agent = new RealtimeAgent({
       name: "Buddy",
       instructions:
-        "You are Buddy, an AI companion, sitting on the desk of the user. You will hear all they say. It will not all require an answer or reaction. It's not always addressed to you, as the user sometimes talks to other people or just thinks out loud. That's why you don't answer unless you have something important to say. You actively listen. You give short answers.",
+        "You are Buddy, an AI companion, sitting on the desk of the user. You will hear all they say. It will not all require an answer or reaction. It's not always addressed to you, as the user sometimes talks to other people or just thinks out loud. That's why you don't answer unless you have something important to say. You actively listen. You give short answers, a single sentence of 1 to 20 words.",
     });
 
     const session = new RealtimeSession(agent, {
@@ -32,12 +49,10 @@ export default function VoiceAgent() {
       outputModalities: ["text"],
     });
 
-    // Listen for text responses from the agent
     session.on("agent_end", (_context, _agent, output) => {
-      setLastMessage(output);
+      showMessage(output);
     });
 
-    // Enter fullscreen
     try {
       await document.documentElement.requestFullscreen();
     } catch (error) {
@@ -48,13 +63,16 @@ export default function VoiceAgent() {
   };
 
   const disconnect = async () => {
-    // Disconnect from the session
     if (sessionRef.current) {
       sessionRef.current.close();
       sessionRef.current = null;
     }
 
-    // Exit fullscreen
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
@@ -64,7 +82,7 @@ export default function VoiceAgent() {
     }
 
     setIsConnected(false);
-    setLastMessage("");
+    setMessage("");
   };
 
   return (
@@ -83,7 +101,23 @@ export default function VoiceAgent() {
           <MdiIcon path={mdiClose} size={24} />
         </button>
       )}
-      {isConnected && <p className="text-white">{lastMessage || "..."}</p>}
+      <AnimatePresence mode="wait">
+        {isConnected && message && (
+          <motion.p
+            key={message}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
+            className="text-white text-center"
+          >
+            {message}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
