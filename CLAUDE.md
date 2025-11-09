@@ -8,7 +8,8 @@
 
 ### App
 
-- React v19.2 (frontend and backend)
+- React v19.2 (frontend AND backend using Server Components and Functions)
+- React Compiler. Automatic optimization. do NOT use useMemo, useCallback, React,memo, memo. Write straightforward code and let the compiler optimize it.
 - React-router v7
 - Tanstack Query
 - Vite
