@@ -23,12 +23,12 @@ run_quality_checks() {
 
 	run_timed "ESLint" "npm run lint 2>&1"
 
-	run_timed "Build" "npm run build 2>&1"
+	run_timed "Docker Build" "docker build -t buddy:test . 2>&1"
 
 	run_timed "Playwright Install" "npx --yes playwright install chromium 2>&1"
 
-	fuser -k 4321/tcp 2>/dev/null || true
-	npm run start >/dev/null 2>&1 &
+	docker rm -f buddy-test 2>/dev/null || true
+	docker run -d --name buddy-test -p 4321:4321 buddy:test >/dev/null 2>&1
 
 	run_timed "Playwright Test" "npm run test 2>&1"
 }
