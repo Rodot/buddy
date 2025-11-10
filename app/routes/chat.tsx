@@ -67,7 +67,7 @@ export default function Chat() {
               {lastAnswer && (
                 <motion.p
                   key={lastAnswer}
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{
                     opacity: 1,
                     scale: 1,
@@ -75,7 +75,7 @@ export default function Chat() {
                   }}
                   exit={{
                     opacity: 0,
-                    transition: { duration: 1.2 },
+                    transition: { duration: 0.3 },
                   }}
                   onAnimationStart={(definition) => {
                     // Only play sound on enter animation (opacity going to 1)
