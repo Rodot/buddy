@@ -10,7 +10,7 @@ import { FullscreenService } from "../services/fullscreen.service";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
 
-type EngineState = "listening" | "thinking" | "talking";
+type EngineState = "listening" | "thinking" | "talking" | "waiting";
 
 interface EngineContextValue {
   state: EngineState;
@@ -36,16 +36,32 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const fullscreenServiceRef = useRef<FullscreenService>(
     new FullscreenService(),
   );
+  const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<EngineState>("talking");
   const [lastAnswer, setLastAnswer] = useState("");
 
+  function clearWaitingTimeout() {
+    if (waitingTimeoutRef.current) {
+      clearTimeout(waitingTimeoutRef.current);
+      waitingTimeoutRef.current = null;
+    }
+  }
+
+  function startWaiting() {
+    clearWaitingTimeout();
+    setState("waiting");
+    setLastAnswer("");
+  }
+
   function startListening() {
+    clearWaitingTimeout();
     setState("listening");
     // Cancel any ongoing completion when user starts speaking
     completionService.abort();
   }
 
   async function startThinking() {
+    clearWaitingTimeout();
     setState("thinking");
     const conversation = conversationService.get();
     const language = i18n.language as Language;
@@ -69,6 +85,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startTalking(message?: string) {
+    clearWaitingTimeout();
     setState("talking");
     const cleanedMessage = cleanString(message);
     console.log("Buddy:", cleanedMessage);
@@ -77,6 +94,10 @@ export function EngineProvider({ children }: EngineProviderProps) {
       text: cleanedMessage,
       role: "assistant",
     });
+    // Start 10 second timeout to enter waiting state
+    waitingTimeoutRef.current = setTimeout(() => {
+      startWaiting();
+    }, 10000);
   }
 
   async function connect(language: Language) {
