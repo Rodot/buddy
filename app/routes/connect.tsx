@@ -4,7 +4,7 @@ import { useToast } from "../providers/toast.provider";
 import MdiIcon from "../components/MdiIcon";
 import { mdiTrashCan } from "@mdi/js";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
 }
 
@@ -60,7 +60,6 @@ export default function Connect() {
       </div>
       <div className="p-4 text-center text-sm text-base-content/50">
         <p>Satire - Use at your own risk</p>
-        <p>Audio and messages processed by OpenAI</p>
         <p>
           No cookies, data or logs stored by{" "}
           <a
@@ -72,6 +71,7 @@ export default function Connect() {
             BetaLab.fr
           </a>
         </p>
+        <p>Data sharing and logging disabled on AI provider</p>
       </div>
     </div>
   );
