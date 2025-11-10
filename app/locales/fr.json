@@ -13,7 +13,7 @@
     "footer": {
       "satire": "Satire - Utilisez à vos propres risques",
       "noData": "Aucun cookie, donnée ou journal stocké par",
-      "dataSharing": "Partage de données et journalisation désactivés chez le fournisseur d'IA"
+      "dataSharing": "Partage de données désactivés chez le fournisseur d'IA"
     }
   },
   "chat": {

@@ -6,7 +6,7 @@ import ThinkingIndicator from "../components/dumb/ThinkingIndicator.dumb";
 import { useTranslation } from "react-i18next";
 
 export default function Chat() {
-  const { state, lastAnswer, disconnect } = useEngine();
+  const { state, lastAnswer, exitToHomePage } = useEngine();
   const { t } = useTranslation();
 
   const isVadActive = state === "listening";
@@ -14,7 +14,7 @@ export default function Chat() {
   const isTalking = state === "talking";
 
   const handleDisconnect = async () => {
-    await disconnect();
+    await exitToHomePage();
   };
 
   return (

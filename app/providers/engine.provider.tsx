@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { TranscriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
@@ -16,7 +16,7 @@ interface EngineContextValue {
   state: EngineState;
   lastAnswer: string;
   connect: (language: Language) => Promise<void>;
-  disconnect: () => Promise<void>;
+  exitToHomePage: () => Promise<void>;
   clearConversation: () => void;
 }
 
@@ -28,6 +28,7 @@ interface EngineProviderProps {
 
 export function EngineProvider({ children }: EngineProviderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { i18n } = useTranslation();
   const transcriptionServiceRef = useRef<TranscriptionService>(
     new TranscriptionService(),
@@ -72,6 +73,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
       );
       if (completionText) {
         startTalking(completionText);
+      } else {
+        startWaiting();
       }
     } catch (error) {
       // If request was aborted, do nothing (new request will handle it)
@@ -80,16 +83,16 @@ export function EngineProvider({ children }: EngineProviderProps) {
       }
       // For other errors, clear thinking state
       console.error("Thinking error:", error);
-      startTalking();
+      startWaiting();
     }
   }
 
-  function startTalking(message?: string) {
+  function startTalking(message: string) {
     clearWaitingTimeout();
     setState("talking");
     const cleanedMessage = cleanString(message);
-    console.log("Buddy:", cleanedMessage);
     setLastAnswer(cleanedMessage);
+    console.log("Buddy:", cleanedMessage);
     conversationService.addMessage({
       text: cleanedMessage,
       role: "assistant",
@@ -100,16 +103,30 @@ export function EngineProvider({ children }: EngineProviderProps) {
     }, 10000);
   }
 
-  async function connect(language: Language) {
+  async function connectTranscriptionService(language: Language) {
     await transcriptionServiceRef.current.connect(language);
   }
 
-  async function disconnect() {
-    startTalking(); // clean message
+  async function openChatPage() {
+    await wakeLockServiceRef.current.request();
+    await fullscreenServiceRef.current.request();
+    navigate("/chat");
+  }
+
+  async function exitToHomePage() {
+    // Only exit if we're currently on the chat page
+    if (location.pathname !== "/chat") {
+      return;
+    }
+    startWaiting();
     await transcriptionServiceRef.current.disconnect();
     await wakeLockServiceRef.current.release();
     await fullscreenServiceRef.current.exit();
     navigate("/");
+  }
+
+  async function connect(language: Language) {
+    await connectTranscriptionService(language);
   }
 
   function clearConversation() {
@@ -152,21 +169,19 @@ export function EngineProvider({ children }: EngineProviderProps) {
   // User exit fullscreen
   useEffect(() => {
     const unsubscribe = fullscreenServiceRef.current.onExit(() => {
-      disconnect();
+      exitToHomePage();
     });
     return unsubscribe;
   }, []);
 
-  // Navigate to home/chat based on transcripttion connection
+  // Navigate to home/chat based on transcription connection
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onConnectionChange(
       (connected) => {
         if (connected) {
-          wakeLockServiceRef.current.request();
-          fullscreenServiceRef.current.request();
-          navigate("/chat");
+          openChatPage();
         } else {
-          disconnect();
+          exitToHomePage();
         }
       },
     );
@@ -177,7 +192,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     state,
     lastAnswer,
     connect,
-    disconnect,
+    exitToHomePage,
     clearConversation,
   };
 
