@@ -5,10 +5,15 @@ import { useEngine } from "../providers/engine.provider";
 import ThinkingIndicator from "../components/dumb/ThinkingIndicator.dumb";
 import { useTranslation } from "react-i18next";
 import CostCounter from "../components/CostCounter";
+import { useRef } from "react";
+import { SoundService } from "../services/sound.service";
 
 export default function Chat() {
   const { state, lastAnswer, exitToHomePage } = useEngine();
   const { t } = useTranslation();
+  const soundServiceRef = useRef<SoundService>(
+    new SoundService("/784041__sadiquecat__mouth-bop.wav"),
+  );
 
   const isVadActive = state === "listening";
   const isThinking = state === "thinking";
@@ -62,15 +67,27 @@ export default function Chat() {
               {lastAnswer && (
                 <motion.p
                   key={lastAnswer}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
                   animate={{
                     opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.2, ease: "easeOut" },
+                    scale: 1,
+                    transition: { duration: 0.1, ease: "easeOut" },
                   }}
                   exit={{
                     opacity: 0,
                     transition: { duration: 1.2 },
+                  }}
+                  onAnimationStart={(definition) => {
+                    // Only play sound on enter animation (opacity going to 1)
+                    if (
+                      typeof definition === "object" &&
+                      definition !== null &&
+                      !Array.isArray(definition) &&
+                      "opacity" in definition &&
+                      definition.opacity === 1
+                    ) {
+                      soundServiceRef.current.play();
+                    }
                   }}
                   className="text-center text-2xl"
                 >
