@@ -10,3 +10,31 @@
   color-scheme: dark;
   --color-base-100: oklch(0% 0 0);
 }
+
+@layer utilities {
+  @keyframes bounce-thinking {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  .animate-bounce-delay-0 {
+    animation: bounce-thinking 1.4s infinite;
+    animation-delay: 0s;
+  }
+
+  .animate-bounce-delay-150 {
+    animation: bounce-thinking 1.4s infinite;
+    animation-delay: 0.15s;
+  }
+
+  .animate-bounce-delay-300 {
+    animation: bounce-thinking 1.4s infinite;
+    animation-delay: 0.3s;
+  }
+}

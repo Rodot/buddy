@@ -2,6 +2,7 @@ import type { ConversationModel } from "../types/domain/conversationModel.type";
 import type { SettingsModel } from "../types/domain/settingsModel.type";
 
 let currentController: AbortController | null = null;
+const thinkingListeners = new Set<(isThinking: boolean) => void>();
 
 export const completionService = {
   async request(
@@ -18,6 +19,9 @@ export const completionService = {
     const signal = currentController.signal;
 
     try {
+      // Emit thinking started event
+      thinkingListeners.forEach((listener) => listener(true));
+
       const response = await fetch("/api/completion", {
         method: "POST",
         headers: {
@@ -43,6 +47,16 @@ export const completionService = {
       }
       console.error("Error getting AI completion:", error);
       return null;
+    } finally {
+      // Emit thinking stopped event
+      thinkingListeners.forEach((listener) => listener(false));
     }
+  },
+
+  onThinkingChange(callback: (isThinking: boolean) => void): () => void {
+    thinkingListeners.add(callback);
+    return () => {
+      thinkingListeners.delete(callback);
+    };
   },
 };

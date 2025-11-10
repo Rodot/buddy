@@ -52,12 +52,6 @@ export class TranscriptionService {
       }
     });
 
-    try {
-      await document.documentElement.requestFullscreen();
-    } catch (error) {
-      console.error("Error entering fullscreen:", error);
-    }
-
     // Emit connection event
     this.connectionListeners.forEach((listener) => listener(true));
   }
@@ -66,14 +60,6 @@ export class TranscriptionService {
     if (this.session) {
       this.session.close();
       this.session = null;
-    }
-
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      }
-    } catch (error) {
-      console.error("Error exiting fullscreen:", error);
     }
 
     // Emit disconnection event

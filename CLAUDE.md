@@ -47,9 +47,10 @@ Strict separation between the domain model and the Dtos/Api. Only the api layer 
 - **types/input/** contains `xxxInput.type.ts` (for form input types, should be merged into Models eventually)
 - **converters/** contains all DTO/Model conversion functions
   - `xxxFromxxx.convert.ts` with function `xxxFromxxx`
-- **defaults/** contains all default value constants
+- **defaults/** contains meaningful default value constants
   - `xxx.default.ts` with constant `xxxDefault`
   - All defaults should be properly typed constants, not functions
+  - Do not create default files for empty arrays or objects - use inline values instead
 - **consts/** contains constant definitions
   - `xxx.const.ts` with exported constants in UPPER_SNAKE_CASE
 - **providers/** contains React context providers
@@ -70,12 +71,34 @@ Strict separation between the domain model and the Dtos/Api. Only the api layer 
 ### Components
 
 - Components use hooks for data fetching rather than prop drilling
-- `/components/` contains all UI components organized in subdirectories:
-  - `/components/dumb/` - `xxx.dumb.tsx` - Purely presentational components, end of the tree
-  - `/components/smart/` - `xxx.smart.tsx` - Components that use queries and mutations and dispatch data to dumb ones
-  - `/components/layout/` - `xxx.layout.tsx` - Middle of the tree, purely presentational, might pass data through using prop drilling
+- `/components/` contains all UI components
 
 ### E2E
 
 - Always use html id tag to locate components
 - If a component don't have an html id tag yet, you can add it
+
+## Main Components Responsibilities
+
+### Key Principles
+
+- **Single Source of Truth**: Conversation service holds the conversation state in localStorage. Never duplicate state.
+- **Direct Subscription**: Components subscribe directly to service events. No event re-emission, no state duplication.
+- **Minimal Providers**: Providers only provide service instances, never duplicate state from services.
+
+### Services
+
+- `transcription.service.ts` Manages real-time audio transcription via OpenAI Realtime API and emits transcription/VAD/connection events
+- `conversation.service.ts` Manages conversation state in localStorage (single source of truth) and emits new answer events
+- `completion.service.ts` Fetches AI completions and emits thinking state events
+- `engine.service.ts` Orchestrates the conversation loop (transcription → conversation → completion) without re-emitting events
+
+### Providers
+
+- `engine.provider.tsx` Only provides engine service instance to React tree
+
+### Pages
+
+- `root.tsx` Handles routing and fullscreen management based on transcription connection events
+- `connect.tsx` Provides language selection UI and initiates engine connection
+- `chat.tsx` Displays chat UI and subscribes directly to transcription, conversation, and completion service events
