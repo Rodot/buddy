@@ -10,6 +10,7 @@ import {
   type Language,
 } from "../consts/i18n.const";
 import { useTranslation } from "react-i18next";
+import { conversationService } from "../services/conversation.service";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
@@ -23,6 +24,7 @@ export default function Connect() {
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     (i18n.language as Language) || DEFAULT_LANGUAGE,
   );
+  const [, forceUpdate] = useState(0);
 
   // Sync i18n language with selected language (only when user changes it)
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function Connect() {
   const handleClear = () => {
     clearConversation();
     showToast(t("connect.historyDeleted"));
+    forceUpdate((prev) => prev + 1);
   };
 
   return (
@@ -71,14 +74,16 @@ export default function Connect() {
             >
               {t("connect.button")}
             </button>
-            <button
-              id="forget-everything"
-              onClick={handleClear}
-              className="btn btn-ghost btn-error gap-2"
-            >
-              <MdiIcon path={mdiTrashCan} size={20} />
-              {t("connect.forgetButton")}
-            </button>
+            {conversationService.get().length > 0 && (
+              <button
+                id="forget-everything"
+                onClick={handleClear}
+                className="btn btn-ghost btn-error gap-2"
+              >
+                <MdiIcon path={mdiTrashCan} size={20} />
+                {t("connect.forgetButton")}
+              </button>
+            )}
           </div>
         </div>
       </div>
