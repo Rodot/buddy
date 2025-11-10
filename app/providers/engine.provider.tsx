@@ -76,17 +76,22 @@ export function EngineProvider({ children }: EngineProviderProps) {
     setLastAnswer("");
 
     const conversation = conversationService.get();
-    if (!areLastThreeMessagesFromAssistant(conversation)) {
-      const randomDelay =
-        Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
-      spontaneousThinkingTimeoutRef.current = setTimeout(() => {
-        conversationService.addMessage({
-          text: "...",
-          role: "user",
-        });
-        startThinking();
-      }, randomDelay);
+    if (areLastThreeMessagesFromAssistant(conversation)) {
+      return;
     }
+    if (location.pathname !== "/chat") {
+      return;
+    }
+
+    const randomDelay =
+      Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
+    spontaneousThinkingTimeoutRef.current = setTimeout(() => {
+      conversationService.addMessage({
+        text: "...",
+        role: "user",
+      });
+      startThinking();
+    }, randomDelay);
   }
 
   function startListening() {
@@ -148,11 +153,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     if (location.pathname !== "/chat") {
       return;
     }
-    startWaiting();
-    await transcriptionServiceRef.current.disconnect();
-    await wakeLockServiceRef.current.release();
-    await fullscreenServiceRef.current.exit();
     navigate("/");
+    startWaiting();
+    transcriptionServiceRef.current.disconnect();
+    wakeLockServiceRef.current.release();
+    fullscreenServiceRef.current.exit();
   }
 
   async function connect(language: Language) {
