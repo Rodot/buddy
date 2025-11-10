@@ -19,8 +19,12 @@ export async function action({ request }: { request: Request }) {
     const {
       conversation,
       language,
-    }: { conversation: ConversationModel; language: Language } =
-      await request.json();
+      dateTime,
+    }: {
+      conversation: ConversationModel;
+      language: Language;
+      dateTime: string;
+    } = await request.json();
 
     const openai = new OpenAI({ apiKey });
 
@@ -28,12 +32,14 @@ export async function action({ request }: { request: Request }) {
       LANGUAGES.find((lang) => lang.code === language)?.name.split(" ")[1] ||
       "English";
 
+    const dateTimeInstruction = `\n\n# Date and Time\nCurrent date and time: ${dateTime}`;
     const languageInstruction = `\n\n# Language\nYou MUST respond in ${languageName}.`;
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: systemPromptDefault + languageInstruction,
+        content:
+          systemPromptDefault + dateTimeInstruction + languageInstruction,
       },
       ...conversation.map((msg) => ({
         role: msg.role,

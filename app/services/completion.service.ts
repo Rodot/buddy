@@ -21,6 +21,10 @@ export const completionService = {
       // Emit thinking started event
       thinkingListeners.forEach((listener) => listener(true));
 
+      // Get current locale date and time
+      const now = new Date();
+      const dateTime = now.toLocaleString();
+
       const response = await fetch("/api/completion", {
         method: "POST",
         headers: {
@@ -29,6 +33,7 @@ export const completionService = {
         body: JSON.stringify({
           conversation,
           language,
+          dateTime,
         }),
         signal: abortController.signal,
       });
