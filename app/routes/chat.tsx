@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEngine } from "../providers/engine.provider";
 import ThinkingIndicator from "../components/dumb/ThinkingIndicator.dumb";
 import { useTranslation } from "react-i18next";
+import CostCounter from "../components/CostCounter";
 
 export default function Chat() {
   const { state, lastAnswer, exitToHomePage } = useEngine();
@@ -19,6 +20,7 @@ export default function Chat() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="p-4">
+        <CostCounter />
         <button
           id="disconnect"
           onClick={handleDisconnect}

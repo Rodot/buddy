@@ -2,6 +2,9 @@ import type { ConversationModel } from "../types/domain/conversationModel.type";
 import type { Language } from "../consts/i18n.const";
 
 const thinkingListeners = new Set<(isThinking: boolean) => void>();
+const tokenUsageListeners = new Set<
+  (usage: { inputTokens: number; outputTokens: number }) => void
+>();
 let abortController: AbortController | null = null;
 
 export const completionService = {
@@ -43,6 +46,12 @@ export const completionService = {
       }
 
       const data = await response.json();
+
+      // Emit token usage event
+      if (data.usage) {
+        tokenUsageListeners.forEach((listener) => listener(data.usage));
+      }
+
       return data.completion || null;
     } catch (error) {
       // Log non-abort errors
@@ -61,6 +70,15 @@ export const completionService = {
     thinkingListeners.add(callback);
     return () => {
       thinkingListeners.delete(callback);
+    };
+  },
+
+  onTokenUsage(
+    callback: (usage: { inputTokens: number; outputTokens: number }) => void,
+  ): () => void {
+    tokenUsageListeners.add(callback);
+    return () => {
+      tokenUsageListeners.delete(callback);
     };
   },
 

@@ -12,9 +12,17 @@ import type { Language } from "../consts/i18n.const";
 
 type EngineState = "listening" | "thinking" | "talking" | "waiting";
 
+interface TokenCounts {
+  completionInput: number;
+  completionOutput: number;
+  transcriptionInput: number;
+  transcriptionOutput: number;
+}
+
 interface EngineContextValue {
   state: EngineState;
   lastAnswer: string;
+  tokenCounts: TokenCounts;
   connect: (language: Language) => Promise<void>;
   exitToHomePage: () => Promise<void>;
   clearConversation: () => void;
@@ -40,6 +48,12 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<EngineState>("talking");
   const [lastAnswer, setLastAnswer] = useState("");
+  const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
+    completionInput: 0,
+    completionOutput: 0,
+    transcriptionInput: 0,
+    transcriptionOutput: 0,
+  });
 
   function clearWaitingTimeout() {
     if (waitingTimeoutRef.current) {
@@ -186,9 +200,36 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return unsubscribe;
   }, [navigate]);
 
+  // Track completion token usage
+  useEffect(() => {
+    const unsubscribe = completionService.onTokenUsage((usage) => {
+      setTokenCounts((prev) => ({
+        ...prev,
+        completionInput: prev.completionInput + usage.inputTokens,
+        completionOutput: prev.completionOutput + usage.outputTokens,
+      }));
+    });
+    return unsubscribe;
+  }, []);
+
+  // Track transcription token usage
+  useEffect(() => {
+    const unsubscribe = transcriptionServiceRef.current.onTokenUsage(
+      (usage) => {
+        setTokenCounts((prev) => ({
+          ...prev,
+          transcriptionInput: prev.transcriptionInput + usage.inputTokens,
+          transcriptionOutput: prev.transcriptionOutput + usage.outputTokens,
+        }));
+      },
+    );
+    return unsubscribe;
+  }, []);
+
   const value: EngineContextValue = {
     state,
     lastAnswer,
+    tokenCounts,
     connect,
     exitToHomePage,
     clearConversation,

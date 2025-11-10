@@ -11,7 +11,7 @@ import {
 } from "../consts/i18n.const";
 import { useTranslation } from "react-i18next";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
 }
 
@@ -56,7 +56,7 @@ export default function Connect() {
               id="language-select"
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value as Language)}
-              className="select select-bordered w-full"
+              className="select w-full"
             >
               {LANGUAGES.map((language) => (
                 <option key={language.code} value={language.code}>

@@ -6,6 +6,9 @@ export class TranscriptionService {
   private transcriptionListeners = new Set<(transcript: string) => void>();
   private vadListeners = new Set<(isActive: boolean) => void>();
   private connectionListeners = new Set<(isConnected: boolean) => void>();
+  private tokenUsageListeners = new Set<
+    (usage: { inputTokens: number; outputTokens: number }) => void
+  >();
 
   async connect(language: Language): Promise<void> {
     const agent = new RealtimeAgent({
@@ -53,6 +56,15 @@ export class TranscriptionService {
       }
     });
 
+    session.transport.on("usage_update", (usage) => {
+      this.tokenUsageListeners.forEach((listener) => {
+        listener({
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+        });
+      });
+    });
+
     // Emit connection event
     this.connectionListeners.forEach((listener) => listener(true));
   }
@@ -85,6 +97,15 @@ export class TranscriptionService {
     this.connectionListeners.add(callback);
     return () => {
       this.connectionListeners.delete(callback);
+    };
+  }
+
+  onTokenUsage(
+    callback: (usage: { inputTokens: number; outputTokens: number }) => void,
+  ): () => void {
+    this.tokenUsageListeners.add(callback);
+    return () => {
+      this.tokenUsageListeners.delete(callback);
     };
   }
 

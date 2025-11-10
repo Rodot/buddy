@@ -55,7 +55,13 @@ export async function action({ request }: { request: Request }) {
 
     const completionText = response.choices[0]?.message?.content || "";
 
-    return Response.json({ completion: completionText });
+    return Response.json({
+      completion: completionText,
+      usage: {
+        inputTokens: response.usage?.prompt_tokens || 0,
+        outputTokens: response.usage?.completion_tokens || 0,
+      },
+    });
   } catch (error) {
     console.error("Error getting AI completion:", error);
     return Response.json(
