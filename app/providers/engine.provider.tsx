@@ -40,14 +40,12 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const [lastAnswer, setLastAnswer] = useState("");
 
   function startListening() {
-    console.log("[listening]");
     setState("listening");
     // Cancel any ongoing completion when user starts speaking
     completionService.abort();
   }
 
   async function startThinking() {
-    console.log("[thinking]");
     setState("thinking");
     const conversation = conversationService.get();
     const language = i18n.language as Language;
@@ -62,7 +60,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
     } catch (error) {
       // If request was aborted, do nothing (new request will handle it)
       if (error instanceof Error && error.name === "AbortError") {
-        console.log("Thinking aborted");
         return;
       }
       // For other errors, clear thinking state
@@ -74,7 +71,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   function startTalking(message?: string) {
     setState("talking");
     const cleanedMessage = cleanString(message);
-    console.log("[talking]", cleanedMessage);
+    console.log("Buddy:", cleanedMessage);
     setLastAnswer(cleanedMessage);
     conversationService.addMessage({
       text: cleanedMessage,
@@ -87,10 +84,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   async function disconnect() {
+    startTalking(); // clean message
     await transcriptionServiceRef.current.disconnect();
     await wakeLockServiceRef.current.release();
     await fullscreenServiceRef.current.exit();
-    startTalking();
+    navigate("/");
   }
 
   function clearConversation() {
@@ -136,7 +134,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
       disconnect();
     });
     return unsubscribe;
-  }, [disconnect]);
+  }, []);
 
   // Navigate to home/chat based on transcripttion connection
   useEffect(() => {
@@ -147,7 +145,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
           fullscreenServiceRef.current.request();
           navigate("/chat");
         } else {
-          navigate("/");
+          disconnect();
         }
       },
     );

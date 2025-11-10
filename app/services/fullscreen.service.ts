@@ -4,7 +4,6 @@ export class FullscreenService {
   async request(): Promise<void> {
     try {
       await document.documentElement.requestFullscreen();
-      console.log("Fullscreen acquired");
     } catch (error) {
       console.error("Failed to enter fullscreen:", error);
     }
@@ -14,7 +13,6 @@ export class FullscreenService {
     if (document.fullscreenElement) {
       try {
         await document.exitFullscreen();
-        console.log("Fullscreen exited");
       } catch (error) {
         console.error("Failed to exit fullscreen:", error);
       }

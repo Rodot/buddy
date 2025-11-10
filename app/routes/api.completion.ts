@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import type { ConversationModel } from "../types/domain/conversationModel.type";
+import type { Language } from "../consts/i18n.const";
+import { LANGUAGES } from "../consts/i18n.const";
 import { systemPromptDefault } from "../defaults/systemPrompt.default";
 
 export async function action({ request }: { request: Request }) {
@@ -14,15 +16,24 @@ export async function action({ request }: { request: Request }) {
   }
 
   try {
-    const { conversation }: { conversation: ConversationModel } =
+    const {
+      conversation,
+      language,
+    }: { conversation: ConversationModel; language: Language } =
       await request.json();
 
     const openai = new OpenAI({ apiKey });
 
+    const languageName =
+      LANGUAGES.find((lang) => lang.code === language)?.name.split(" ")[1] ||
+      "English";
+
+    const languageInstruction = `\n\n# Language\nYou MUST respond in ${languageName}.`;
+
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: systemPromptDefault,
+        content: systemPromptDefault + languageInstruction,
       },
       ...conversation.map((msg) => ({
         role: msg.role,
