@@ -5,15 +5,15 @@
   },
   "connect": {
     "title": "Buddy",
-    "subtitle": "Votre compagnon toxique en ligne",
+    "subtitle": "Votre IA de compagnie toxique",
     "button": "Connecter",
     "forgetButton": "Oublier les conversations passées",
     "connecting": "Connexion en cours...",
     "historyDeleted": "Historique supprimé",
     "footer": {
-      "satire": "Satire - Utilisez à vos propres risques",
+      "satire": "Satire - Utilisez à vos risques et périls",
       "noData": "Aucun cookie, donnée ou journal stocké par",
-      "dataSharing": "Partage de données désactivés chez le fournisseur d'IA"
+      "dataSharing": "Partage de données désactivé chez le fournisseur d'IA"
     }
   },
   "chat": {

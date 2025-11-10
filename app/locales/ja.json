@@ -5,7 +5,7 @@
   },
   "connect": {
     "title": "Buddy",
-    "subtitle": "あなたの有害なオンライン仲間",
+    "subtitle": "あなたの有害なAI仲間",
     "button": "接続",
     "forgetButton": "過去の会話を忘れる",
     "connecting": "接続中...",
