@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useEngine } from "../providers/engine.provider";
 import { useToast } from "../providers/toast.provider";
 import MdiIcon from "../components/MdiIcon";
+import GlitchyTitle from "../components/GlitchyTitle";
 import { mdiTrashCan } from "@mdi/js";
 import {
   LANGUAGES,
@@ -12,7 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { conversationService } from "../services/conversation.service";
 
-export function meta({ }: Route.MetaArgs) {
+export function meta({}: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
 }
 
@@ -25,7 +26,6 @@ export default function Connect() {
     (i18n.language as Language) || DEFAULT_LANGUAGE,
   );
   const [, forceUpdate] = useState(0);
-  const [isGlitching, setIsGlitching] = useState(false);
 
   // Sync i18n language with selected language (only when user changes it)
   useEffect(() => {
@@ -33,31 +33,6 @@ export default function Connect() {
       i18n.changeLanguage(selectedLanguage);
     }
   }, [selectedLanguage, i18n]);
-
-  // Random blink effect: BUDDY -> BULLY with shake animation
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const scheduleNextGlitch = () => {
-      // Random interval between 3-5 seconds
-      const nextGlitchDelay = 3000 + Math.random() * 2000;
-      timeoutId = setTimeout(() => {
-        setIsGlitching(true);
-        const glitchDuration = 300;
-        setTimeout(() => {
-          setIsGlitching(false);
-          // Schedule the next glitch after returning to normal
-          scheduleNextGlitch();
-        }, glitchDuration);
-      }, nextGlitchDelay);
-    };
-
-    scheduleNextGlitch();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, []);
 
   const handleConnect = async () => {
     showToast(t("connect.connecting"));
@@ -75,12 +50,7 @@ export default function Connect() {
       <div className="p-4 flex-1 flex items-center">
         <div className="flex flex-col gap-16 items-center">
           <div className="text-center mb-4">
-            <h1
-              className={`text-6xl font-bold font-mono mb-2 pt-1 ${isGlitching ? "text-black bg-red-600" : "text-white"
-                }`}
-            >
-              {isGlitching ? "BULLY" : "BUDDY"}
-            </h1>
+            <GlitchyTitle normalText="BUDDY" glitchText="BULLY" />
             <p className="text-xl text-base-content/70">
               {t("connect.subtitle")}
             </p>
