@@ -9,14 +9,12 @@ import { useRef } from "react";
 import { SoundService } from "../services/sound.service";
 
 export default function Chat() {
-  const { state, lastAnswer, exitToHomePage } = useEngine();
+  const { lastAnswer, exitToHomePage, isListeningActive: isVadActive, isThinkingActive: isCompletionActive } =
+    useEngine();
   const { t } = useTranslation();
   const soundServiceRef = useRef<SoundService>(
     new SoundService("/784041__sadiquecat__mouth-bop.wav"),
   );
-
-  const isVadActive = state === "listening";
-  const isThinking = state === "thinking";
 
   const handleDisconnect = async () => {
     await exitToHomePage();
@@ -35,19 +33,17 @@ export default function Chat() {
           <MdiIcon path={mdiClose} size={24} />
         </button>
         <div className="flex flex-col items-center gap-4">
-          <div
-            className="btn btn-circle btn-ghost pointer-events-none"
-            aria-label={t("chat.voiceActivity")}
-          >
-            <MdiIcon
-              path={mdiMicrophone}
-              size={24}
-              className={`transition-opacity duration-300 ${isVadActive ? "opacity-100" : "opacity-30"}`}
-            />
+          <div className="min-h-24">
+            <div
+              className={`btn btn-circle pointer-events-none transition-colors duration-300 ${isVadActive ? "bg-red-500" : "btn-ghost"}`}
+              aria-label={t("chat.voiceActivity")}
+            >
+              <MdiIcon path={mdiMicrophone} size={24} className="text-white" />
+            </div>
           </div>
           <div className="min-h-24">
             <AnimatePresence>
-              {isThinking && (
+              {isCompletionActive && (
                 <motion.div
                   key="thinking"
                   initial={{ opacity: 0 }}

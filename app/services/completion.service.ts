@@ -52,6 +52,8 @@ export const completionService = {
         tokenUsageListeners.forEach((listener) => listener(data.usage));
       }
 
+      thinkingListeners.forEach((listener) => listener(false));
+
       return data.completion || null;
     } catch (error) {
       // Log non-abort errors
@@ -60,9 +62,6 @@ export const completionService = {
       }
       // Re-throw to let the caller handle it
       throw error;
-    } finally {
-      // Emit thinking stopped event
-      thinkingListeners.forEach((listener) => listener(false));
     }
   },
 

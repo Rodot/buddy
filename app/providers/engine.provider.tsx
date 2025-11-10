@@ -24,6 +24,8 @@ interface EngineContextValue {
   state: EngineState;
   lastAnswer: string;
   tokenCounts: TokenCounts;
+  isListeningActive: boolean;
+  isThinkingActive: boolean;
   connect: (language: Language) => Promise<void>;
   exitToHomePage: () => Promise<void>;
   clearConversation: () => void;
@@ -58,6 +60,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
     transcriptionInput: 0,
     transcriptionOutput: 0,
   });
+  const [isListeningActive, setIsListeningActive] = useState(false);
+  const [isThinkingActive, setIsThinkingActive] = useState(false);
 
   function clearTimeouts() {
     if (waitingTimeoutRef.current) {
@@ -153,11 +157,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     if (location.pathname !== "/chat") {
       return;
     }
-    navigate("/");
     startWaiting();
-    transcriptionServiceRef.current.disconnect();
-    wakeLockServiceRef.current.release();
-    fullscreenServiceRef.current.exit();
+    await transcriptionServiceRef.current.disconnect();
+    await wakeLockServiceRef.current.release();
+    await fullscreenServiceRef.current.exit();
+    navigate("/");
   }
 
   async function connect(language: Language) {
@@ -172,10 +176,10 @@ export function EngineProvider({ children }: EngineProviderProps) {
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onVadChange(
       (isActive) => {
+        setIsListeningActive(isActive);
         if (isActive) {
           startListening();
         }
-        // Voice stopped - Do nothing, wait for transcription event
       },
     );
 
@@ -220,6 +224,14 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return unsubscribe;
   }, [navigate]);
 
+  // Track completion thinking state
+  useEffect(() => {
+    const unsubscribe = completionService.onThinkingChange((isThinking) => {
+      setIsThinkingActive(isThinking);
+    });
+    return unsubscribe;
+  }, []);
+
   // Track completion token usage
   useEffect(() => {
     const unsubscribe = completionService.onTokenUsage((usage) => {
@@ -250,6 +262,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
     state,
     lastAnswer,
     tokenCounts,
+    isListeningActive: isListeningActive,
+    isThinkingActive: isThinkingActive,
     connect,
     exitToHomePage,
     clearConversation,
