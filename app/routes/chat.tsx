@@ -11,7 +11,6 @@ export default function Chat() {
 
   const isVadActive = state === "listening";
   const isThinking = state === "thinking";
-  const isTalking = state === "talking";
 
   const handleDisconnect = async () => {
     await exitToHomePage();
@@ -40,7 +39,7 @@ export default function Chat() {
             />
           </div>
           <div className="min-h-24">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               {isThinking && (
                 <motion.div
                   key="thinking"
@@ -50,12 +49,15 @@ export default function Chat() {
                   transition={{
                     duration: 0.3,
                   }}
-                  className="flex items-center justify-center h-24"
                 >
                   <ThinkingIndicator />
                 </motion.div>
               )}
-              {isTalking && (
+            </AnimatePresence>
+          </div>
+          <div className="min-h-24">
+            <AnimatePresence>
+              {lastAnswer && (
                 <motion.p
                   key={lastAnswer}
                   initial={{ opacity: 0, y: 20 }}
@@ -65,7 +67,7 @@ export default function Chat() {
                     duration: 0.3,
                     ease: "easeOut",
                   }}
-                  className="text-white text-center text-2xl"
+                  className="text-center text-2xl"
                 >
                   {lastAnswer}
                 </motion.p>

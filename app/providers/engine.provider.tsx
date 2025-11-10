@@ -57,8 +57,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
   function startListening() {
     clearWaitingTimeout();
     setState("listening");
-    // Cancel any ongoing completion when user starts speaking
-    completionService.abort();
   }
 
   async function startThinking() {
