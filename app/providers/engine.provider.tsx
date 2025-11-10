@@ -80,7 +80,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
       const randomDelay =
         Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
       spontaneousThinkingTimeoutRef.current = setTimeout(() => {
-        // Add "..." message to indicate spontaneous thinking without user input
         conversationService.addMessage({
           text: "...",
           role: "user",
@@ -126,12 +125,10 @@ export function EngineProvider({ children }: EngineProviderProps) {
     setState("talking");
     const cleanedMessage = cleanString(message);
     setLastAnswer(cleanedMessage);
-    console.log("Buddy:", cleanedMessage);
     conversationService.addMessage({
       text: cleanedMessage,
       role: "assistant",
     });
-    // Start 10 second timeout to enter waiting state
     waitingTimeoutRef.current = setTimeout(() => {
       startWaiting();
     }, 10000);
@@ -148,7 +145,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   async function exitToHomePage() {
-    // Only exit if we're currently on the chat page
     if (location.pathname !== "/chat") {
       return;
     }
@@ -172,11 +168,9 @@ export function EngineProvider({ children }: EngineProviderProps) {
     const unsubscribe = transcriptionServiceRef.current.onVadChange(
       (isActive) => {
         if (isActive) {
-          // Voice detected
           startListening();
         }
-        // Voice stopped
-        // Do nothing, wait for transcription event
+        // Voice stopped - Do nothing, wait for transcription event
       },
     );
 
@@ -192,7 +186,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
           text: cleanedTranscript,
           role: "user",
         });
-        console.log("User:", cleanedTranscript);
         startThinking();
       },
     );
