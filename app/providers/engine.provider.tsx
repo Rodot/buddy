@@ -1,19 +1,21 @@
 import { createContext, useContext, useRef, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { TranscriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
 import { completionService } from "../services/completion.service";
-import { settingsService } from "../services/settings.service";
 import { WakeLockService } from "../services/wake-lock.service";
 import { FullscreenService } from "../services/fullscreen.service";
+import { cleanString } from "../logic/cleanString.logic";
+import type { Language } from "../consts/i18n.const";
 
 type EngineState = "listening" | "thinking" | "talking";
 
 interface EngineContextValue {
   state: EngineState;
   lastAnswer: string;
-  connect: (language: "en" | "fr") => Promise<void>;
+  connect: (language: Language) => Promise<void>;
   disconnect: () => Promise<void>;
   clearConversation: () => void;
 }
@@ -26,6 +28,7 @@ interface EngineProviderProps {
 
 export function EngineProvider({ children }: EngineProviderProps) {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const transcriptionServiceRef = useRef<TranscriptionService>(
     new TranscriptionService(),
   );
@@ -47,11 +50,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     console.log("[thinking]");
     setState("thinking");
     const conversation = conversationService.get();
-    const settings = settingsService.get();
+    const language = i18n.language as Language;
     try {
       const completionText = await completionService.request(
         conversation,
-        settings.language,
+        language,
       );
       if (completionText) {
         startTalking(completionText);
@@ -69,21 +72,17 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startTalking(message?: string) {
-    console.log("[talking]", message);
-    const newMessage = message ?? "...";
     setState("talking");
-    setLastAnswer(newMessage);
-    if (!message) return;
+    const cleanedMessage = cleanString(message);
+    console.log("[talking]", cleanedMessage);
+    setLastAnswer(cleanedMessage);
     conversationService.addMessage({
-      text: message,
+      text: cleanedMessage,
       role: "assistant",
     });
   }
 
-  async function connect(language: "en" | "fr") {
-    settingsService.setLanguage(language);
-    await wakeLockServiceRef.current.request();
-    await fullscreenServiceRef.current.request();
+  async function connect(language: Language) {
     await transcriptionServiceRef.current.connect(language);
   }
 
@@ -118,13 +117,12 @@ export function EngineProvider({ children }: EngineProviderProps) {
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onTranscription(
       (transcript) => {
+        const cleanedTranscript = cleanString(transcript);
         conversationService.addMessage({
-          text: transcript,
+          text: cleanedTranscript,
           role: "user",
         });
-        console.log("User:", transcript);
-
-        // Start completion
+        console.log("User:", cleanedTranscript);
         startThinking();
       },
     );
@@ -145,6 +143,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
     const unsubscribe = transcriptionServiceRef.current.onConnectionChange(
       (connected) => {
         if (connected) {
+          wakeLockServiceRef.current.request();
+          fullscreenServiceRef.current.request();
           navigate("/chat");
         } else {
           navigate("/");

@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Buddy",
+    "description": "Aplikasi Buddy"
+  },
+  "connect": {
+    "title": "Buddy",
+    "subtitle": "Teman gelap online Anda",
+    "button": "Hubungkan",
+    "forgetButton": "Lupakan percakapan masa lalu",
+    "connecting": "Menghubungkan...",
+    "historyDeleted": "Riwayat dihapus",
+    "footer": {
+      "satire": "Satir - Gunakan dengan risiko Anda sendiri",
+      "noData": "Tidak ada cookie, data, atau log yang disimpan oleh",
+      "dataSharing": "Berbagi data dan logging dinonaktifkan pada penyedia AI"
+    }
+  },
+  "chat": {
+    "disconnect": "Putuskan",
+    "voiceActivity": "Aktivitas suara"
+  },
+  "errors": {
+    "oops": "Ups!",
+    "unexpected": "Terjadi kesalahan yang tidak terduga.",
+    "notFound": "Halaman yang diminta tidak dapat ditemukan.",
+    "error": "Kesalahan"
+  }
+}

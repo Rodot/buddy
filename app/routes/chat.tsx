@@ -3,9 +3,11 @@ import MdiIcon from "../components/MdiIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEngine } from "../providers/engine.provider";
 import ThinkingIndicator from "../components/dumb/ThinkingIndicator.dumb";
+import { useTranslation } from "react-i18next";
 
 export default function Chat() {
   const { state, lastAnswer, disconnect } = useEngine();
+  const { t } = useTranslation();
 
   const isVadActive = state === "listening";
   const isThinking = state === "thinking";
@@ -22,14 +24,14 @@ export default function Chat() {
           id="disconnect"
           onClick={handleDisconnect}
           className="fixed top-4 right-4 btn btn-circle"
-          aria-label="Disconnect"
+          aria-label={t("chat.disconnect")}
         >
           <MdiIcon path={mdiClose} size={24} />
         </button>
         <div className="flex flex-col items-center gap-4">
           <div
             className="btn btn-circle btn-ghost pointer-events-none"
-            aria-label="Voice activity"
+            aria-label={t("chat.voiceActivity")}
           >
             <MdiIcon
               path={mdiMicrophone}

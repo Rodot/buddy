@@ -1,5 +1,5 @@
 import type { ConversationModel } from "../types/domain/conversationModel.type";
-import type { SettingsModel } from "../types/domain/settingsModel.type";
+import type { Language } from "../consts/i18n.const";
 
 const thinkingListeners = new Set<(isThinking: boolean) => void>();
 let abortController: AbortController | null = null;
@@ -7,7 +7,7 @@ let abortController: AbortController | null = null;
 export const completionService = {
   async request(
     conversation: ConversationModel,
-    language: SettingsModel["language"],
+    language: Language,
   ): Promise<string | null> {
     try {
       // Cancel previous request if it exists

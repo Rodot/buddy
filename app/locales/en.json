@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Buddy",
+    "description": "Buddy app"
+  },
+  "connect": {
+    "title": "Buddy",
+    "subtitle": "Your dark online companion",
+    "button": "Connect",
+    "forgetButton": "Forget past conversations",
+    "connecting": "Connecting...",
+    "historyDeleted": "History deleted",
+    "footer": {
+      "satire": "Satire - Use at your own risk",
+      "noData": "No cookies, data or logs stored by",
+      "dataSharing": "Data sharing and logging disabled on AI provider"
+    }
+  },
+  "chat": {
+    "disconnect": "Disconnect",
+    "voiceActivity": "Voice activity"
+  },
+  "errors": {
+    "oops": "Oops!",
+    "unexpected": "An unexpected error occurred.",
+    "notFound": "The requested page could not be found.",
+    "error": "Error"
+  }
+}

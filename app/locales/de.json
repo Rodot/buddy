@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Buddy",
+    "description": "Buddy-App"
+  },
+  "connect": {
+    "title": "Buddy",
+    "subtitle": "Dein dunkler Online-Begleiter",
+    "button": "Verbinden",
+    "forgetButton": "Vergangene Gespräche vergessen",
+    "connecting": "Verbinden...",
+    "historyDeleted": "Verlauf gelöscht",
+    "footer": {
+      "satire": "Satire - Nutzung auf eigene Gefahr",
+      "noData": "Keine Cookies, Daten oder Protokolle gespeichert von",
+      "dataSharing": "Datenaustausch und Protokollierung beim KI-Anbieter deaktiviert"
+    }
+  },
+  "chat": {
+    "disconnect": "Trennen",
+    "voiceActivity": "Sprachaktivität"
+  },
+  "errors": {
+    "oops": "Hoppla!",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
+    "notFound": "Die angeforderte Seite konnte nicht gefunden werden.",
+    "error": "Fehler"
+  }
+}

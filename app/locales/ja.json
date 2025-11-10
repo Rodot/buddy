@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Buddy",
+    "description": "Buddyアプリ"
+  },
+  "connect": {
+    "title": "Buddy",
+    "subtitle": "あなたのダークなオンライン仲間",
+    "button": "接続",
+    "forgetButton": "過去の会話を忘れる",
+    "connecting": "接続中...",
+    "historyDeleted": "履歴を削除しました",
+    "footer": {
+      "satire": "風刺 - 自己責任でご使用ください",
+      "noData": "Cookie、データ、ログは保存されません",
+      "dataSharing": "AIプロバイダーでのデータ共有とログ記録は無効化されています"
+    }
+  },
+  "chat": {
+    "disconnect": "切断",
+    "voiceActivity": "音声アクティビティ"
+  },
+  "errors": {
+    "oops": "おっと！",
+    "unexpected": "予期しないエラーが発生しました。",
+    "notFound": "要求されたページが見つかりませんでした。",
+    "error": "エラー"
+  }
+}

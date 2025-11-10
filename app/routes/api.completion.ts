@@ -32,6 +32,7 @@ export async function action({ request }: { request: Request }) {
 
     const response = await openai.chat.completions.create({
       model: "gpt-5-mini",
+      service_tier: "priority",
       messages,
     });
 

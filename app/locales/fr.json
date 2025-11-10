@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Buddy",
+    "description": "Application Buddy"
+  },
+  "connect": {
+    "title": "Buddy",
+    "subtitle": "Votre obscure compagnon en ligne",
+    "button": "Connecter",
+    "forgetButton": "Oublier les conversations passées",
+    "connecting": "Connexion en cours...",
+    "historyDeleted": "Historique supprimé",
+    "footer": {
+      "satire": "Satire - Utilisez à vos propres risques",
+      "noData": "Aucun cookie, donnée ou journal stocké par",
+      "dataSharing": "Partage de données et journalisation désactivés chez le fournisseur d'IA"
+    }
+  },
+  "chat": {
+    "disconnect": "Déconnecter",
+    "voiceActivity": "Activité vocale"
+  },
+  "errors": {
+    "oops": "Oups !",
+    "unexpected": "Une erreur inattendue s'est produite.",
+    "notFound": "La page demandée est introuvable.",
+    "error": "Erreur"
+  }
+}

@@ -1,4 +1,5 @@
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
+import type { Language } from "../consts/i18n.const";
 
 export class TranscriptionService {
   private session: RealtimeSession | null = null;
@@ -6,7 +7,7 @@ export class TranscriptionService {
   private vadListeners = new Set<(isActive: boolean) => void>();
   private connectionListeners = new Set<(isConnected: boolean) => void>();
 
-  async connect(language: "en" | "fr"): Promise<void> {
+  async connect(language: Language): Promise<void> {
     const agent = new RealtimeAgent({
       name: "Transcriber",
     });
