@@ -9,6 +9,7 @@ import { WakeLockService } from "../services/wake-lock.service";
 import { FullscreenService } from "../services/fullscreen.service";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
+import { areLastThreeMessagesFromAssistant } from "../logic/areLastThreeMessagesFromAssistant.logic";
 
 type EngineState = "listening" | "thinking" | "talking" | "waiting";
 
@@ -46,6 +47,9 @@ export function EngineProvider({ children }: EngineProviderProps) {
     new FullscreenService(),
   );
   const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spontaneousThinkingTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const [state, setState] = useState<EngineState>("talking");
   const [lastAnswer, setLastAnswer] = useState("");
   const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
@@ -55,26 +59,44 @@ export function EngineProvider({ children }: EngineProviderProps) {
     transcriptionOutput: 0,
   });
 
-  function clearWaitingTimeout() {
+  function clearTimeouts() {
     if (waitingTimeoutRef.current) {
       clearTimeout(waitingTimeoutRef.current);
       waitingTimeoutRef.current = null;
     }
+    if (spontaneousThinkingTimeoutRef.current) {
+      clearTimeout(spontaneousThinkingTimeoutRef.current);
+      spontaneousThinkingTimeoutRef.current = null;
+    }
   }
 
   function startWaiting() {
-    clearWaitingTimeout();
+    clearTimeouts();
     setState("waiting");
     setLastAnswer("");
+
+    const conversation = conversationService.get();
+    if (!areLastThreeMessagesFromAssistant(conversation)) {
+      const randomDelay =
+        Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
+      spontaneousThinkingTimeoutRef.current = setTimeout(() => {
+        // Add "..." message to indicate spontaneous thinking without user input
+        conversationService.addMessage({
+          text: "...",
+          role: "user",
+        });
+        startThinking();
+      }, randomDelay);
+    }
   }
 
   function startListening() {
-    clearWaitingTimeout();
+    clearTimeouts();
     setState("listening");
   }
 
   async function startThinking() {
-    clearWaitingTimeout();
+    clearTimeouts();
     setState("thinking");
     const conversation = conversationService.get();
     const language = i18n.language as Language;
@@ -100,7 +122,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startTalking(message: string) {
-    clearWaitingTimeout();
+    clearTimeouts();
     setState("talking");
     const cleanedMessage = cleanString(message);
     setLastAnswer(cleanedMessage);

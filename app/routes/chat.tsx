@@ -58,16 +58,19 @@ export default function Chat() {
             </AnimatePresence>
           </div>
           <div className="min-h-24">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {lastAnswer && (
                 <motion.p
                   key={lastAnswer}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    duration: 0.3,
-                    ease: "easeOut",
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.2, ease: "easeOut" },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    transition: { duration: 1.2 },
                   }}
                   className="text-center text-2xl"
                 >

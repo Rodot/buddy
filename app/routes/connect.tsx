@@ -11,7 +11,7 @@ import {
 } from "../consts/i18n.const";
 import { useTranslation } from "react-i18next";
 
-export function meta({ }: Route.MetaArgs) {
+export function meta({}: Route.MetaArgs) {
   return [{ title: "Buddy" }, { name: "description", content: "Buddy app" }];
 }
 
