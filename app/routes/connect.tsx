@@ -1,7 +1,6 @@
 import type { Route } from "./+types/connect";
 import { useEngine } from "../providers/engine.provider";
 import { useToast } from "../providers/toast.provider";
-import { conversationService } from "../services/conversation.service";
 import MdiIcon from "../components/MdiIcon";
 import { mdiTrashCan } from "@mdi/js";
 
@@ -10,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Connect() {
-  const { connect } = useEngine();
+  const { connect, clearConversation } = useEngine();
   const { showToast } = useToast();
 
   const handleConnect = async (lang: "en" | "fr") => {
@@ -19,7 +18,7 @@ export default function Connect() {
   };
 
   const handleClear = () => {
-    conversationService.clear();
+    clearConversation();
     showToast("History deleted");
   };
 

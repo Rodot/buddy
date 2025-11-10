@@ -1,25 +1,21 @@
-import {
-  createContext,
-  useContext,
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import { createContext, useContext, useRef, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { TranscriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
 import { completionService } from "../services/completion.service";
 import { settingsService } from "../services/settings.service";
+import { WakeLockService } from "../services/wake-lock.service";
+import { FullscreenService } from "../services/fullscreen.service";
 
-type EngineState = "sleeping" | "listening" | "thinking" | "talking";
+type EngineState = "listening" | "thinking" | "talking";
 
 interface EngineContextValue {
   state: EngineState;
   lastAnswer: string;
-  transcriptionService: TranscriptionService;
   connect: (language: "en" | "fr") => Promise<void>;
   disconnect: () => Promise<void>;
+  clearConversation: () => void;
 }
 
 const EngineContext = createContext<EngineContextValue | undefined>(undefined);
@@ -29,108 +25,96 @@ interface EngineProviderProps {
 }
 
 export function EngineProvider({ children }: EngineProviderProps) {
+  const navigate = useNavigate();
   const transcriptionServiceRef = useRef<TranscriptionService>(
     new TranscriptionService(),
   );
-  const [state, setState] = useState<EngineState>("sleeping");
+  const wakeLockServiceRef = useRef<WakeLockService>(new WakeLockService());
+  const fullscreenServiceRef = useRef<FullscreenService>(
+    new FullscreenService(),
+  );
+  const [state, setState] = useState<EngineState>("talking");
   const [lastAnswer, setLastAnswer] = useState("");
-  const talkingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const completionInProgressRef = useRef(false);
 
-  const clearTalkingTimeout = useCallback(() => {
-    if (talkingTimeoutRef.current) {
-      clearTimeout(talkingTimeoutRef.current);
-      talkingTimeoutRef.current = null;
-    }
-  }, []);
+  function startListening() {
+    console.log("[listening]");
+    setState("listening");
+    // Cancel any ongoing completion when user starts speaking
+    completionService.abort();
+  }
 
-  const startCompletion = useCallback(async () => {
-    if (completionInProgressRef.current) {
-      return;
-    }
-
+  async function startThinking() {
+    console.log("[thinking]");
     setState("thinking");
-    completionInProgressRef.current = true;
-
+    const conversation = conversationService.get();
+    const settings = settingsService.get();
     try {
-      const conversation = conversationService.get();
-      const settings = settingsService.get();
       const completionText = await completionService.request(
         conversation,
         settings.language,
       );
-
-      // Check if we're still in thinking state (not interrupted)
-      if (completionInProgressRef.current && completionText) {
-        console.log("Assistant:", completionText);
-        conversationService.addMessage({
-          text: completionText,
-          role: "assistant",
-        });
-
-        // Transition to talking state
-        setState("talking");
-        setLastAnswer(completionText);
-
-        // Set timeout to go back to sleeping after 10 seconds
-        clearTalkingTimeout();
-        talkingTimeoutRef.current = setTimeout(() => {
-          setState("sleeping");
-          setLastAnswer("");
-        }, 10000);
+      if (completionText) {
+        startTalking(completionText);
       }
     } catch (error) {
-      console.error("Completion error:", error);
-      // On error, go back to sleeping
-      setState("sleeping");
-    } finally {
-      completionInProgressRef.current = false;
+      // If request was aborted, do nothing (new request will handle it)
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Thinking aborted");
+        return;
+      }
+      // For other errors, clear thinking state
+      console.error("Thinking error:", error);
+      startTalking();
     }
-  }, [clearTalkingTimeout]);
+  }
 
-  const connect = useCallback(async (language: "en" | "fr") => {
+  function startTalking(message?: string) {
+    console.log("[talking]", message);
+    const newMessage = message ?? "...";
+    setState("talking");
+    setLastAnswer(newMessage);
+    if (!message) return;
+    conversationService.addMessage({
+      text: message,
+      role: "assistant",
+    });
+  }
+
+  async function connect(language: "en" | "fr") {
     settingsService.setLanguage(language);
+    await wakeLockServiceRef.current.request();
+    await fullscreenServiceRef.current.request();
     await transcriptionServiceRef.current.connect(language);
-  }, []);
+  }
 
-  const disconnect = useCallback(async () => {
+  async function disconnect() {
     await transcriptionServiceRef.current.disconnect();
-    clearTalkingTimeout();
-    completionInProgressRef.current = false;
-    setState("sleeping");
-    setLastAnswer("");
-  }, [clearTalkingTimeout]);
+    await wakeLockServiceRef.current.release();
+    await fullscreenServiceRef.current.exit();
+    startTalking();
+  }
 
-  // Handle VAD changes
+  function clearConversation() {
+    conversationService.clear();
+  }
+
+  // Voice activity start
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onVadChange(
       (isActive) => {
         if (isActive) {
           // Voice detected
-          // From any state → listening
-          clearTalkingTimeout();
-
-          // Cancel ongoing completion if thinking
-          if (state === "thinking" && completionInProgressRef.current) {
-            completionInProgressRef.current = false;
-            // The completion service will handle abort via its internal controller
-          }
-
-          setState("listening");
-        } else {
-          // Voice stopped
-          // From listening → sleeping (no transcription yet)
-          if (state === "listening") {
-            setState("sleeping");
-          }
+          startListening();
         }
+        // Voice stopped
+        // Do nothing, wait for transcription event
       },
     );
 
     return unsubscribe;
-  }, [state, clearTalkingTimeout]);
+  }, [state]);
 
-  // Handle transcription completion
+  // Transcription completion
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onTranscription(
       (transcript) => {
@@ -141,19 +125,41 @@ export function EngineProvider({ children }: EngineProviderProps) {
         console.log("User:", transcript);
 
         // Start completion
-        startCompletion();
+        startThinking();
       },
     );
 
     return unsubscribe;
-  }, [startCompletion]);
+  }, [startThinking]);
+
+  // User exit fullscreen
+  useEffect(() => {
+    const unsubscribe = fullscreenServiceRef.current.onExit(() => {
+      disconnect();
+    });
+    return unsubscribe;
+  }, [disconnect]);
+
+  // Navigate to home/chat based on transcripttion connection
+  useEffect(() => {
+    const unsubscribe = transcriptionServiceRef.current.onConnectionChange(
+      (connected) => {
+        if (connected) {
+          navigate("/chat");
+        } else {
+          navigate("/");
+        }
+      },
+    );
+    return unsubscribe;
+  }, [navigate]);
 
   const value: EngineContextValue = {
     state,
     lastAnswer,
-    transcriptionService: transcriptionServiceRef.current,
     connect,
     disconnect,
+    clearConversation,
   };
 
   return (

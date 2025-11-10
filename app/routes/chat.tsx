@@ -9,6 +9,7 @@ export default function Chat() {
 
   const isVadActive = state === "listening";
   const isThinking = state === "thinking";
+  const isTalking = state === "talking";
 
   const handleDisconnect = async () => {
     await disconnect();
@@ -38,7 +39,7 @@ export default function Chat() {
           </div>
           <div className="min-h-24">
             <AnimatePresence mode="wait">
-              {isThinking && !lastAnswer && (
+              {isThinking && (
                 <motion.div
                   key="thinking"
                   initial={{ opacity: 0 }}
@@ -52,7 +53,7 @@ export default function Chat() {
                   <ThinkingIndicator />
                 </motion.div>
               )}
-              {lastAnswer && (
+              {isTalking && (
                 <motion.p
                   key={lastAnswer}
                   initial={{ opacity: 0, y: 20 }}

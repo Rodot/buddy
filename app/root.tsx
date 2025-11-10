@@ -5,14 +5,12 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useNavigate,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { EngineProvider, useEngine } from "./providers/engine.provider";
+import { EngineProvider } from "./providers/engine.provider";
 import { ToastProvider } from "./providers/toast.provider";
-import { useEffect } from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -45,51 +43,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AppRouter() {
-  const { transcriptionService, disconnect } = useEngine();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = transcriptionService.onConnectionChange((connected) => {
-      if (connected) {
-        navigate("/chat");
-        document.documentElement.requestFullscreen().catch((error) => {
-          console.error("Failed to enter fullscreen:", error);
-        });
-      } else {
-        navigate("/");
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch((error) => {
-            console.error("Failed to exit fullscreen:", error);
-          });
-        }
-      }
-    });
-    return unsubscribe;
-  }, [transcriptionService, navigate]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        // Fullscreen was exited, disconnect
-        disconnect();
-      }
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, [disconnect]);
-
-  return <Outlet />;
-}
-
 export default function App() {
   return (
     <EngineProvider>
       <ToastProvider>
-        <AppRouter />
+        <Outlet />
       </ToastProvider>
     </EngineProvider>
   );

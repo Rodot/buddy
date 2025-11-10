@@ -23,6 +23,8 @@ run_quality_checks() {
 
 	run_timed "ESLint" "npm run lint 2>&1"
 
+	run_timed "React Compiler Check" "./steps/check-react-compiler.sh"
+
 	run_timed "Docker Build" "docker build -t buddy:test . 2>&1"
 
 	run_timed "Playwright Install" "npx --yes playwright install chromium 2>&1"

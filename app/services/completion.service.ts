@@ -1,24 +1,23 @@
 import type { ConversationModel } from "../types/domain/conversationModel.type";
 import type { SettingsModel } from "../types/domain/settingsModel.type";
 
-let currentController: AbortController | null = null;
 const thinkingListeners = new Set<(isThinking: boolean) => void>();
+let abortController: AbortController | null = null;
 
 export const completionService = {
   async request(
     conversation: ConversationModel,
     language: SettingsModel["language"],
   ): Promise<string | null> {
-    // Cancel any pending request
-    if (currentController) {
-      currentController.abort();
-    }
-
-    // Create new controller for this request
-    currentController = new AbortController();
-    const signal = currentController.signal;
-
     try {
+      // Cancel previous request if it exists
+      if (abortController) {
+        abortController.abort();
+      }
+
+      // Create new AbortController for this request
+      abortController = new AbortController();
+
       // Emit thinking started event
       thinkingListeners.forEach((listener) => listener(true));
 
@@ -31,7 +30,7 @@ export const completionService = {
           conversation,
           language,
         }),
-        signal,
+        signal: abortController.signal,
       });
 
       if (!response.ok) {
@@ -41,12 +40,12 @@ export const completionService = {
       const data = await response.json();
       return data.completion || null;
     } catch (error) {
-      // Don't log abort errors as they're expected
-      if (error instanceof Error && error.name === "AbortError") {
-        return null;
+      // Log non-abort errors
+      if (!(error instanceof Error && error.name === "AbortError")) {
+        console.error("Error getting AI completion:", error);
       }
-      console.error("Error getting AI completion:", error);
-      return null;
+      // Re-throw to let the caller handle it
+      throw error;
     } finally {
       // Emit thinking stopped event
       thinkingListeners.forEach((listener) => listener(false));
@@ -58,5 +57,11 @@ export const completionService = {
     return () => {
       thinkingListeners.delete(callback);
     };
+  },
+
+  abort(): void {
+    if (abortController) {
+      abortController.abort();
+    }
   },
 };
