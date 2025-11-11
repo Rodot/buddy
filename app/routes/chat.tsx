@@ -37,8 +37,8 @@ export default function Chat() {
         >
           <MdiIcon path={mdiClose} size={24} />
         </button>
-        <div className="flex flex-col items-center gap-4 max-w-2xl w-full">
-          <div className="min-h-24">
+        <div className="flex flex-col items-center max-w-2xl w-full">
+          <div>
             <div
               className={`btn btn-circle pointer-events-none transition-colors duration-300 ${isVadActive ? "bg-red-500" : "btn-ghost"}`}
               aria-label={t("chat.voiceActivity")}
@@ -50,7 +50,7 @@ export default function Chat() {
               />
             </div>
           </div>
-          <div className="min-h-24 w-full">
+          <div className="min-h-32 w-full">
             <AnimatePresence mode="wait">
               {lastTranscription && (
                 <motion.p
@@ -72,7 +72,7 @@ export default function Chat() {
               )}
             </AnimatePresence>
           </div>
-          <div className="min-h-24">
+          <div className="min-h-6">
             <AnimatePresence>
               {isCompletionActive && (
                 <motion.div
@@ -89,7 +89,7 @@ export default function Chat() {
               )}
             </AnimatePresence>
           </div>
-          <div className="min-h-24">
+          <div className="min-h-32">
             <AnimatePresence mode="wait">
               {lastAnswer && (
                 <motion.p
