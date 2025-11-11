@@ -111,7 +111,7 @@ export default function Chat() {
                     soundServiceRef.current.play();
                   }
                 }}
-                className={`text-center text-2xl whitespace-pre-line ${lastAnswer.personna === "bully" ? "text-red-500" : ""}`}
+                className={`text-center text-2xl whitespace-pre-line}`}
               >
                 {lastAnswer.text}
               </motion.p>
