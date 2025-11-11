@@ -66,7 +66,7 @@ export default function Chat() {
             <AnimatePresence mode="wait">
               {lastAnswer && (
                 <motion.p
-                  key={lastAnswer}
+                  key={lastAnswer.text}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{
                     opacity: 1,
@@ -89,9 +89,9 @@ export default function Chat() {
                       soundServiceRef.current.play();
                     }
                   }}
-                  className="text-center text-2xl"
+                  className={`text-center text-2xl ${lastAnswer.personna === "bully" ? "text-red-500" : ""}`}
                 >
-                  {lastAnswer}
+                  {lastAnswer.text}
                 </motion.p>
               )}
             </AnimatePresence>

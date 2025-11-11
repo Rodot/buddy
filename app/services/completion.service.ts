@@ -1,5 +1,6 @@
 import type { ConversationModel } from "../types/domain/conversationModel.type";
 import type { Language } from "../consts/i18n.const";
+import type { Personna } from "../types/domain/messageModel.type";
 
 const thinkingListeners = new Set<(isThinking: boolean) => void>();
 const tokenUsageListeners = new Set<
@@ -11,6 +12,7 @@ export const completionService = {
   async request(
     conversation: ConversationModel,
     language: Language,
+    personna: Personna,
   ): Promise<string | null> {
     try {
       // Cancel previous request if it exists
@@ -37,6 +39,7 @@ export const completionService = {
           conversation,
           language,
           dateTime,
+          personna,
         }),
         signal: abortController.signal,
       });

@@ -2,7 +2,11 @@ import OpenAI from "openai";
 import type { ConversationModel } from "../types/domain/conversationModel.type";
 import type { Language } from "../consts/i18n.const";
 import { LANGUAGES } from "../consts/i18n.const";
-import { systemPromptDefault } from "../defaults/systemPrompt.default";
+import {
+  systemPromptBully,
+  systemPromptBuddy,
+} from "../defaults/systemPrompt.default";
+import type { Personna } from "../types/domain/messageModel.type";
 
 export async function action({ request }: { request: Request }) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -20,10 +24,12 @@ export async function action({ request }: { request: Request }) {
       conversation,
       language,
       dateTime,
+      personna,
     }: {
       conversation: ConversationModel;
       language: Language;
       dateTime: string;
+      personna: Personna;
     } = await request.json();
 
     const openai = new OpenAI({ apiKey });
@@ -35,11 +41,13 @@ export async function action({ request }: { request: Request }) {
     const dateTimeInstruction = `\n\n# Date and Time\nCurrent date and time: ${dateTime}`;
     const languageInstruction = `\n\n# Language\nYou MUST respond in ${languageName}.`;
 
+    const systemPrompt =
+      personna === "bully" ? systemPromptBully : systemPromptBuddy;
+
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content:
-          systemPromptDefault + dateTimeInstruction + languageInstruction,
+        content: systemPrompt + dateTimeInstruction + languageInstruction,
       },
       ...conversation.map((msg) => ({
         role: msg.role,
