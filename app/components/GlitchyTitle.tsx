@@ -18,10 +18,10 @@ export default function GlitchyTitle({
 
     const scheduleNextGlitch = () => {
       // Random interval between 3-5 seconds
-      const nextGlitchDelay = 3000 + Math.random() * 2000;
+      const nextGlitchDelay = 300 + Math.random() * 5000;
       timeoutId = setTimeout(() => {
         setIsGlitching(true);
-        const glitchDuration = 300;
+        const glitchDuration = 100 + Math.random() * 150;
         setTimeout(() => {
           setIsGlitching(false);
           // Schedule the next glitch after returning to normal
