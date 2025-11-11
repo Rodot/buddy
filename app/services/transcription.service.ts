@@ -1,7 +1,7 @@
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
 import type { Language } from "../consts/i18n.const";
 
-export class TranscriptionService {
+class TranscriptionService {
   private session: RealtimeSession | null = null;
   private transcriptionListeners = new Set<(transcript: string) => void>();
   private vadListeners = new Set<(isActive: boolean) => void>();
@@ -119,3 +119,5 @@ export class TranscriptionService {
     return this.session !== null;
   }
 }
+
+export const transcriptionService = new TranscriptionService();
