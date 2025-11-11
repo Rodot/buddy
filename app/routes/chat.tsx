@@ -37,7 +37,7 @@ export default function Chat() {
         >
           <MdiIcon path={mdiClose} size={24} />
         </button>
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 max-w-2xl w-full">
           <div className="min-h-24">
             <div
               className={`btn btn-circle pointer-events-none transition-colors duration-300 ${isVadActive ? "bg-red-500" : "btn-ghost"}`}
@@ -46,11 +46,11 @@ export default function Chat() {
               <MdiIcon
                 path={mdiMicrophone}
                 size={24}
-                className={isVadActive ? "text-white" : "text-gray-400"}
+                className={"text-white"}
               />
             </div>
           </div>
-          <div className="min-h-24">
+          <div className="min-h-24 w-full">
             <AnimatePresence mode="wait">
               {lastTranscription && (
                 <motion.p
@@ -65,7 +65,7 @@ export default function Chat() {
                     opacity: 0,
                     transition: { duration: 0.3 },
                   }}
-                  className="text-center text-xl text-gray-400"
+                  className="text-center text-xl text-gray-400 truncate px-4"
                 >
                   {lastTranscription}
                 </motion.p>
@@ -116,7 +116,7 @@ export default function Chat() {
                       soundServiceRef.current.play();
                     }
                   }}
-                  className={`text-center text-2xl ${lastAnswer.personna === "bully" ? "text-red-500" : ""}`}
+                  className={`text-center text-2xl whitespace-pre-line ${lastAnswer.personna === "bully" ? "text-red-500" : ""}`}
                 >
                   {lastAnswer.text}
                 </motion.p>
