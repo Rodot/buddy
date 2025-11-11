@@ -6,10 +6,10 @@ import { TranscriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
 import { completionService } from "../services/completion.service";
 import { WakeLockService } from "../services/wake-lock.service";
-import { FullscreenService } from "../services/fullscreen.service";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
 import { areLastThreeMessagesFromAssistant } from "../logic/areLastThreeMessagesFromAssistant.logic";
+import type { Personna } from "../types/domain/messageModel.type";
 
 interface TokenCounts {
   completionInput: number;
@@ -18,8 +18,13 @@ interface TokenCounts {
   transcriptionOutput: number;
 }
 
+interface LastAnswer {
+  text: string;
+  personna: Personna;
+}
+
 interface EngineContextValue {
-  lastAnswer: string;
+  lastAnswer: LastAnswer | null;
   tokenCounts: TokenCounts;
   isListeningActive: boolean;
   isThinkingActive: boolean;
@@ -42,14 +47,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     new TranscriptionService(),
   );
   const wakeLockServiceRef = useRef<WakeLockService>(new WakeLockService());
-  const fullscreenServiceRef = useRef<FullscreenService>(
-    new FullscreenService(),
-  );
   const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const spontaneousThinkingTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
-  const [lastAnswer, setLastAnswer] = useState("");
+  const [lastAnswer, setLastAnswer] = useState<LastAnswer | null>(null);
   const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
     completionInput: 0,
     completionOutput: 0,
@@ -73,7 +75,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   function startWaiting() {
     console.log("[start waiting]");
     clearTimeouts();
-    setLastAnswer("");
+    setLastAnswer(null);
 
     const conversation = conversationService.get();
     if (areLastThreeMessagesFromAssistant(conversation)) {
@@ -87,7 +89,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
       Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
     spontaneousThinkingTimeoutRef.current = setTimeout(() => {
       conversationService.addMessage({
-        text: "...",
+        text: "{no-answer-from-user}",
         role: "user",
       });
       startThinking();
@@ -104,13 +106,16 @@ export function EngineProvider({ children }: EngineProviderProps) {
     clearTimeouts();
     const conversation = conversationService.get();
     const language = i18n.language as Language;
+    // 20% chance of bully, 80% chance of buddy
+    const personna: Personna = Math.random() < 0.2 ? "bully" : "buddy";
     try {
       const completionText = await completionService.request(
         conversation,
         language,
+        personna,
       );
       if (completionText) {
-        startTalking(completionText);
+        startTalking(completionText, personna);
       } else {
         startWaiting();
       }
@@ -125,14 +130,15 @@ export function EngineProvider({ children }: EngineProviderProps) {
     }
   }
 
-  function startTalking(message: string) {
+  function startTalking(message: string, personna: Personna) {
     console.log("[start talking]");
     clearTimeouts();
     const cleanedMessage = cleanString(message);
-    setLastAnswer(cleanedMessage);
+    setLastAnswer({ text: cleanedMessage, personna });
     conversationService.addMessage({
       text: cleanedMessage,
       role: "assistant",
+      personna,
     });
     waitingTimeoutRef.current = setTimeout(() => {
       startWaiting();
@@ -145,7 +151,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
 
   async function openChatPage() {
     await wakeLockServiceRef.current.request();
-    await fullscreenServiceRef.current.request();
     navigate("/chat");
   }
 
@@ -156,7 +161,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
     startWaiting();
     await transcriptionServiceRef.current.disconnect();
     await wakeLockServiceRef.current.release();
-    await fullscreenServiceRef.current.exit();
     navigate("/");
   }
 
@@ -198,14 +202,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
 
     return unsubscribe;
   }, [startThinking]);
-
-  // User exit fullscreen event
-  useEffect(() => {
-    const unsubscribe = fullscreenServiceRef.current.onExit(() => {
-      exitToHomePage();
-    });
-    return unsubscribe;
-  }, []);
 
   // Navigate to home/chat based on transcription connection
   useEffect(() => {

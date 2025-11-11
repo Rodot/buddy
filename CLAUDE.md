@@ -92,11 +92,10 @@ Strict separation between the domain model and the Dtos/Api. Only the api layer 
 - `conversation.service.ts` Manages conversation state in localStorage (single source of truth) and emits new answer events
 - `completion.service.ts` Fetches AI completions and emits thinking state events
 - `wake-lock.service.ts` Manages screen wake lock to prevent phone screen from locking during active use
-- `fullscreen.service.ts` Manages fullscreen mode and emits exit events when user exits fullscreen
 
 ### Providers
 
-- `engine.provider.tsx` The single orchestrator. Owns all service instances, subscribes to all service events (VAD, transcription, connection, fullscreen), manages the engine state machine (sleeping, listening, thinking, talking), orchestrates the conversation loop (transcription → conversation → completion), and exposes ONLY state and callbacks to components (never raw service instances)
+- `engine.provider.tsx` The single orchestrator. Owns all service instances, subscribes to all service events (VAD, transcription, connection), manages the engine state machine (sleeping, listening, thinking, talking), orchestrates the conversation loop (transcription → conversation → completion), and exposes ONLY state and callbacks to components (never raw service instances)
 
 ### Pages
 
