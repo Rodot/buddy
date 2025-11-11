@@ -8,7 +8,7 @@ import { completionService } from "../services/completion.service";
 import { requestWakeLock, releaseWakeLock } from "../logic/wake-lock.logic";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
-import { areLastThreeMessagesFromAssistant } from "../logic/areLastThreeMessagesFromAssistant.logic";
+import { areLastTwoMessagesFromAssistant } from "../logic/areLastTwoMessagesFromAssistant.logic";
 import type { Personna } from "../types/domain/messageModel.type";
 
 interface LastAnswer {
@@ -78,7 +78,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     setLastTranscription(null);
 
     const conversation = conversationService.get();
-    if (areLastThreeMessagesFromAssistant(conversation)) {
+    if (areLastTwoMessagesFromAssistant(conversation)) {
       return;
     }
     if (location.pathname !== "/chat") {
@@ -104,8 +104,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     clearTimeouts();
     const conversation = conversationService.get();
     const language = i18n.language as Language;
-    // 20% chance of bully, 80% chance of buddy
-    const personna: Personna = Math.random() < 0.2 ? "bully" : "buddy";
+    const personna: Personna = Math.random() < 0.5 ? "bully" : "buddy";
     try {
       const completionText = await completionService.request(
         conversation,
