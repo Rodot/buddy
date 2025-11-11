@@ -109,7 +109,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
         language,
         personna,
       );
-      if (completionText?.trim()) {
+      if (completionText?.trim().length) {
         startTalking(completionText, personna);
       } else {
         startWaiting();
@@ -163,6 +163,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     setLastAnswer(null);
     setLastTranscription(null);
     await transcriptionService.disconnect();
+    await completionService.abort();
     await releaseWakeLock(wakeLockRef.current);
     wakeLockRef.current = null;
     navigate("/");
@@ -219,11 +220,14 @@ export function EngineProvider({ children }: EngineProviderProps) {
       if (connected) {
         openChatPage();
       } else {
-        exitToHomePage();
+        // Only navigate if we're currently on chat page (handles unexpected disconnections)
+        if (location.pathname === "/chat") {
+          navigate("/");
+        }
       }
     });
     return unsubscribe;
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   // Track completion thinking state
   useEffect(() => {
