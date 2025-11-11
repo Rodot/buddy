@@ -71,19 +71,21 @@ export default function Connect() {
             <button id="connect-button" onClick={handleConnect} className="btn">
               {t("connect.button")}
             </button>
-            {conversationService.get().length > 0 && (
-              <button
-                id="forget-everything"
-                onClick={handleClear}
-                className="btn btn-ghost opacity-50 gap-2"
-              >
-                <MdiIcon path={mdiTrashCan} size={20} />
-                {t("connect.forgetButton")}
-              </button>
-            )}
           </div>
         </div>
       </div>
+      {conversationService.get().length > 0 && (
+        <div className="p-4">
+          <button
+            id="forget-everything"
+            onClick={handleClear}
+            className="btn btn-ghost opacity-50 gap-2"
+          >
+            <MdiIcon path={mdiTrashCan} size={20} />
+            {t("connect.forgetButton")}
+          </button>
+        </div>
+      )}
       <div className="p-4 text-center text-sm text-base-content/50">
         <p>{t("connect.footer.satire")}</p>
         <p>
