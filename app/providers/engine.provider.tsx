@@ -60,6 +60,10 @@ export function EngineProvider({ children }: EngineProviderProps) {
       clearTimeout(spontaneousThinkingTimeoutRef.current);
       spontaneousThinkingTimeoutRef.current = null;
     }
+    // Note: transcriptionTimeoutRef is NOT cleared here - it manages its own lifecycle
+  }
+
+  function clearTranscriptionTimeout() {
     if (transcriptionTimeoutRef.current) {
       clearTimeout(transcriptionTimeoutRef.current);
       transcriptionTimeoutRef.current = null;
@@ -69,6 +73,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   function startWaiting() {
     console.log("[start waiting]");
     clearTimeouts();
+    clearTranscriptionTimeout();
     setLastAnswer(null);
     setLastTranscription(null);
 
@@ -80,15 +85,13 @@ export function EngineProvider({ children }: EngineProviderProps) {
       return;
     }
 
-    const randomDelay =
-      Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
     spontaneousThinkingTimeoutRef.current = setTimeout(() => {
       conversationService.addMessage({
         text: "{no-answer-from-user}",
         role: "user",
       });
       startThinking();
-    }, randomDelay);
+    }, 30000);
   }
 
   function startListening() {
@@ -160,6 +163,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
       return;
     }
     clearTimeouts();
+    clearTranscriptionTimeout();
     setLastAnswer(null);
     setLastTranscription(null);
     await transcriptionService.disconnect();
@@ -195,14 +199,14 @@ export function EngineProvider({ children }: EngineProviderProps) {
     const unsubscribe = transcriptionService.onTranscription((transcript) => {
       const cleanedTranscript = cleanString(transcript);
 
-      // Set last transcription and clear it after 10 seconds
+      // Set last transcription and clear it after 3 seconds
       setLastTranscription(cleanedTranscript);
       if (transcriptionTimeoutRef.current) {
         clearTimeout(transcriptionTimeoutRef.current);
       }
       transcriptionTimeoutRef.current = setTimeout(() => {
         setLastTranscription(null);
-      }, 10000);
+      }, 3000);
 
       conversationService.addMessage({
         text: cleanedTranscript,
