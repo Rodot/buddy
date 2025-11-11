@@ -7,10 +7,10 @@ Analyze the conversation and return ONLY a single number between 0 and 120, repr
 
 Guidelines:
 - If the assistant should continue talking right away: 0 minutes
-- If the conversation just started or is very engaging: 1-5 minutes
-- If the conversation is casual and ongoing: 5-30 minutes
-- If the user seems busy or the conversation is winding down: 30-60 minutes
-- If the conversation ended naturally: 60-120 minutes
+- If the conversation is engaging: 1 minute
+- If the conversation is casual and ongoing: 5 minutes
+- If the user seems busy or the conversation is winding down: 30 minutes
+- If the conversation ended naturally: 120 minutes
 - If the last message was "{no-answer-from-user}": increase the delay significantly
 
 Consider:
