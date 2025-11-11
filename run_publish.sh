@@ -11,7 +11,11 @@ TAG="latest"
 FULL_IMAGE="${REGISTRY}/${IMAGE_NAME}:${TAG}"
 
 publish_image() {
+	run_timed "Check Git Status" "check_git_status"
+
 	run_timed "Quality Checks & Build" "./run_quality.sh"
+
+	run_timed "Push to Git" "git push"
 
 	run_timed "Tag Image" "docker tag buddy:test ${FULL_IMAGE}"
 

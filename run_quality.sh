@@ -3,7 +3,6 @@ SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_PATH" || exit
 
 source ./steps/common.sh
-source ./steps/ensure-docker.sh
 
 run_quality_checks() {
 	run_timed "Docker Check" "ensure_docker_running"
