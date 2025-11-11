@@ -9,8 +9,12 @@ import { useRef } from "react";
 import { SoundService } from "../services/sound.service";
 
 export default function Chat() {
-  const { lastAnswer, exitToHomePage, isListeningActive: isVadActive, isThinkingActive: isCompletionActive } =
-    useEngine();
+  const {
+    lastAnswer,
+    exitToHomePage,
+    isListeningActive: isVadActive,
+    isThinkingActive: isCompletionActive,
+  } = useEngine();
   const { t } = useTranslation();
   const soundServiceRef = useRef<SoundService>(
     new SoundService("/784041__sadiquecat__mouth-bop.wav"),

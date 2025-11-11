@@ -11,8 +11,6 @@ import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
 import { areLastThreeMessagesFromAssistant } from "../logic/areLastThreeMessagesFromAssistant.logic";
 
-type EngineState = "listening" | "thinking" | "talking" | "waiting";
-
 interface TokenCounts {
   completionInput: number;
   completionOutput: number;
@@ -21,7 +19,6 @@ interface TokenCounts {
 }
 
 interface EngineContextValue {
-  state: EngineState;
   lastAnswer: string;
   tokenCounts: TokenCounts;
   isListeningActive: boolean;
@@ -52,7 +49,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const spontaneousThinkingTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
-  const [state, setState] = useState<EngineState>("talking");
   const [lastAnswer, setLastAnswer] = useState("");
   const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
     completionInput: 0,
@@ -75,8 +71,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startWaiting() {
+    console.log("[start waiting]");
     clearTimeouts();
-    setState("waiting");
     setLastAnswer("");
 
     const conversation = conversationService.get();
@@ -99,13 +95,13 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startListening() {
+    console.log("[start listening]");
     clearTimeouts();
-    setState("listening");
   }
 
   async function startThinking() {
+    console.log("[start thinking]");
     clearTimeouts();
-    setState("thinking");
     const conversation = conversationService.get();
     const language = i18n.language as Language;
     try {
@@ -130,8 +126,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startTalking(message: string) {
+    console.log("[start talking]", message);
     clearTimeouts();
-    setState("talking");
     const cleanedMessage = cleanString(message);
     setLastAnswer(cleanedMessage);
     conversationService.addMessage({
@@ -172,21 +168,22 @@ export function EngineProvider({ children }: EngineProviderProps) {
     conversationService.clear();
   }
 
-  // Voice activity start
+  // Voice activity detection event
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onVadChange(
       (isActive) => {
-        setIsListeningActive(isActive);
         if (isActive) {
           startListening();
+          setIsListeningActive(true);
+        } else {
+          setIsListeningActive(false);
         }
       },
     );
-
     return unsubscribe;
-  }, [state]);
+  }, []);
 
-  // Transcription completion
+  // Transcription completion event
   useEffect(() => {
     const unsubscribe = transcriptionServiceRef.current.onTranscription(
       (transcript) => {
@@ -202,7 +199,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return unsubscribe;
   }, [startThinking]);
 
-  // User exit fullscreen
+  // User exit fullscreen event
   useEffect(() => {
     const unsubscribe = fullscreenServiceRef.current.onExit(() => {
       exitToHomePage();
@@ -259,7 +256,6 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }, []);
 
   const value: EngineContextValue = {
-    state,
     lastAnswer,
     tokenCounts,
     isListeningActive: isListeningActive,
