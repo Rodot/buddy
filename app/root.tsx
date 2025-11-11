@@ -12,6 +12,7 @@ import "./app.css";
 import "./i18n";
 import { EngineProvider } from "./providers/engine.provider";
 import { ToastProvider } from "./providers/toast.provider";
+import { CostProvider } from "./providers/cost.provider";
 import { useTranslation } from "react-i18next";
 
 export const links: Route.LinksFunction = () => [
@@ -50,9 +51,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <EngineProvider>
-      <ToastProvider>
-        <Outlet />
-      </ToastProvider>
+      <CostProvider>
+        <ToastProvider>
+          <Outlet />
+        </ToastProvider>
+      </CostProvider>
     </EngineProvider>
   );
 }

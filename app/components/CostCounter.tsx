@@ -1,27 +1,9 @@
-import { useState, useEffect } from "react";
-import { completionService } from "../services/completion.service";
-import { transcriptionService } from "../services/transcription.service";
-import { spontaneousThinkingDelayService } from "../services/spontaneous-thinking-delay.service";
+import { useState } from "react";
 import { MODEL_PRICING } from "../consts/model-pricing.const";
-
-interface TokenCounts {
-  completionInput: number;
-  completionOutput: number;
-  transcriptionInput: number;
-  transcriptionOutput: number;
-  delayInput: number;
-  delayOutput: number;
-}
+import { useCost } from "../providers/cost.provider";
 
 export default function CostCounter() {
-  const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
-    completionInput: 0,
-    completionOutput: 0,
-    transcriptionInput: 0,
-    transcriptionOutput: 0,
-    delayInput: 0,
-    delayOutput: 0,
-  });
+  const tokenCounts = useCost();
   const [showDetail, setShowDetail] = useState(false);
 
   // Calculate individual costs
@@ -53,47 +35,9 @@ export default function CostCounter() {
     delayInputCost +
     delayOutputCost;
 
-  // Track completion token usage
-  useEffect(() => {
-    const unsubscribe = completionService.onTokenUsage((usage) => {
-      setTokenCounts((prev) => ({
-        ...prev,
-        completionInput: prev.completionInput + usage.inputTokens,
-        completionOutput: prev.completionOutput + usage.outputTokens,
-      }));
-    });
-    return unsubscribe;
-  }, []);
-
-  // Track transcription token usage
-  useEffect(() => {
-    const unsubscribe = transcriptionService.onTokenUsage((usage) => {
-      setTokenCounts((prev) => ({
-        ...prev,
-        transcriptionInput: prev.transcriptionInput + usage.inputTokens,
-        transcriptionOutput: prev.transcriptionOutput + usage.outputTokens,
-      }));
-    });
-    return unsubscribe;
-  }, []);
-
-  // Track spontaneous thinking delay token usage
-  useEffect(() => {
-    const unsubscribe = spontaneousThinkingDelayService.onTokenUsage(
-      (usage) => {
-        setTokenCounts((prev) => ({
-          ...prev,
-          delayInput: prev.delayInput + usage.inputTokens,
-          delayOutput: prev.delayOutput + usage.outputTokens,
-        }));
-      },
-    );
-    return unsubscribe;
-  }, []);
-
   return (
     <div
-      className="fixed top-4 left-4 p-2 font-mono cursor-pointer select-none"
+      className="fixed top-4 left-4 p-2 font-mono cursor-pointer opacity-50 select-none"
       onClick={() => setShowDetail(!showDetail)}
     >
       {showDetail ? (
