@@ -18,7 +18,7 @@ export const conversationService = {
   },
 
   addMessage(message: Omit<MessageModel, "id" | "timestamp">): void {
-    console.log(message.role + ": " + message.text);
+    console.log(message.role + " " + (message.personna ?? "") + ": " + message.text);
     const currentConversation = this.get();
     const newMessage: MessageModel = {
       ...message,
