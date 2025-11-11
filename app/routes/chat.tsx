@@ -42,11 +42,7 @@ export default function Chat() {
             className={`btn btn-circle pointer-events-none transition-colors duration-300 ${isVadActive ? "bg-red-500" : "btn-ghost"}`}
             aria-label={t("chat.voiceActivity")}
           >
-            <MdiIcon
-              path={mdiMicrophone}
-              size={24}
-              className={"text-white"}
-            />
+            <MdiIcon path={mdiMicrophone} size={24} className={"text-white"} />
           </div>
         </div>
         <div className="min-h-32 w-full">
