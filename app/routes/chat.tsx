@@ -11,6 +11,7 @@ import { SoundService } from "../services/sound.service";
 export default function Chat() {
   const {
     lastAnswer,
+    lastTranscription,
     exitToHomePage,
     isListeningActive: isVadActive,
     isThinkingActive: isCompletionActive,
@@ -44,6 +45,28 @@ export default function Chat() {
             >
               <MdiIcon path={mdiMicrophone} size={24} className="text-white" />
             </div>
+          </div>
+          <div className="min-h-24">
+            <AnimatePresence mode="wait">
+              {lastTranscription && (
+                <motion.p
+                  key={lastTranscription}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    transition: { duration: 0.1, ease: "easeOut" },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    transition: { duration: 0.3 },
+                  }}
+                  className="text-center text-xl text-gray-400"
+                >
+                  {lastTranscription}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
           <div className="min-h-24">
             <AnimatePresence>

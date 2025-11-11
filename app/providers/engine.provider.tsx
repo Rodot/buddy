@@ -18,6 +18,7 @@ interface LastAnswer {
 
 interface EngineContextValue {
   lastAnswer: LastAnswer | null;
+  lastTranscription: string | null;
   isListeningActive: boolean;
   isThinkingActive: boolean;
   connect: (language: Language) => Promise<void>;
@@ -40,7 +41,13 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const spontaneousThinkingTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const transcriptionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [lastAnswer, setLastAnswer] = useState<LastAnswer | null>(null);
+  const [lastTranscription, setLastTranscription] = useState<string | null>(
+    null,
+  );
   const [isListeningActive, setIsListeningActive] = useState(false);
   const [isThinkingActive, setIsThinkingActive] = useState(false);
 
@@ -53,12 +60,17 @@ export function EngineProvider({ children }: EngineProviderProps) {
       clearTimeout(spontaneousThinkingTimeoutRef.current);
       spontaneousThinkingTimeoutRef.current = null;
     }
+    if (transcriptionTimeoutRef.current) {
+      clearTimeout(transcriptionTimeoutRef.current);
+      transcriptionTimeoutRef.current = null;
+    }
   }
 
   function startWaiting() {
     console.log("[start waiting]");
     clearTimeouts();
     setLastAnswer(null);
+    setLastTranscription(null);
 
     const conversation = conversationService.get();
     if (areLastThreeMessagesFromAssistant(conversation)) {
@@ -147,7 +159,9 @@ export function EngineProvider({ children }: EngineProviderProps) {
     if (location.pathname !== "/chat") {
       return;
     }
-    startWaiting();
+    clearTimeouts();
+    setLastAnswer(null);
+    setLastTranscription(null);
     await transcriptionService.disconnect();
     await releaseWakeLock(wakeLockRef.current);
     wakeLockRef.current = null;
@@ -179,6 +193,16 @@ export function EngineProvider({ children }: EngineProviderProps) {
   useEffect(() => {
     const unsubscribe = transcriptionService.onTranscription((transcript) => {
       const cleanedTranscript = cleanString(transcript);
+
+      // Set last transcription and clear it after 10 seconds
+      setLastTranscription(cleanedTranscript);
+      if (transcriptionTimeoutRef.current) {
+        clearTimeout(transcriptionTimeoutRef.current);
+      }
+      transcriptionTimeoutRef.current = setTimeout(() => {
+        setLastTranscription(null);
+      }, 10000);
+
       conversationService.addMessage({
         text: cleanedTranscript,
         role: "user",
@@ -211,6 +235,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
 
   const value: EngineContextValue = {
     lastAnswer,
+    lastTranscription,
     isListeningActive: isListeningActive,
     isThinkingActive: isThinkingActive,
     connect,
