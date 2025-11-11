@@ -138,9 +138,14 @@ export function EngineProvider({ children }: EngineProviderProps) {
       role: "assistant",
       personna,
     });
+
+    // Calculate display time: minimum 10s, or 1s per word for slow readers
+    const estimatedWords = cleanedMessage.length / 5;
+    const displayTimeMs = Math.max(10000, estimatedWords * 1000);
+
     waitingTimeoutRef.current = setTimeout(() => {
       startWaiting();
-    }, 10000);
+    }, displayTimeMs);
   }
 
   async function connectTranscriptionService(language: Language) {
