@@ -6,6 +6,7 @@ check_git_status() {
 		git status
 		exit 1
 	fi
+	git push
 }
 
 ensure_docker_running() {
