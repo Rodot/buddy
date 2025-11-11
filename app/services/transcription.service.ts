@@ -52,12 +52,10 @@ export class TranscriptionService {
           this.transcriptionListeners.forEach((listener) => {
             listener(event.transcript);
           });
+          break;
         default:
           // Only log errors
-          if (
-            "response" in event &&
-            event.response?.status === "failed"
-          ) {
+          if ("response" in event && event.response?.status === "failed") {
             console.error("Transport event error:", JSON.stringify(event));
           }
           break;
