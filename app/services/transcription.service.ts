@@ -9,8 +9,14 @@ class TranscriptionService {
   private tokenUsageListeners = new Set<
     (usage: { inputTokens: number; outputTokens: number }) => void
   >();
+  private processedTranscriptions = new Set<string>();
 
   async connect(language: Language): Promise<void> {
+    // Disconnect any existing session to prevent duplicate listeners
+    if (this.session) {
+      await this.disconnect();
+    }
+
     const agent = new RealtimeAgent({
       name: "Transcriber",
     });
@@ -48,11 +54,17 @@ class TranscriptionService {
         case "input_audio_buffer.speech_stopped":
           this.vadListeners.forEach((listener) => listener(false));
           break;
-        case "conversation.item.input_audio_transcription.completed":
-          this.transcriptionListeners.forEach((listener) => {
-            listener(event.transcript);
-          });
+        case "conversation.item.input_audio_transcription.completed": {
+          // Only process completed transcriptions, ignore delta events
+          const itemId = event.item_id;
+          if (!this.processedTranscriptions.has(itemId)) {
+            this.processedTranscriptions.add(itemId);
+            this.transcriptionListeners.forEach((listener) => {
+              listener(event.transcript);
+            });
+          }
           break;
+        }
         default:
           // Only log errors
           if ("response" in event && event.response?.status === "failed") {
@@ -80,6 +92,9 @@ class TranscriptionService {
       this.session.close();
       this.session = null;
     }
+
+    // Clear processed transcriptions to avoid memory leak
+    this.processedTranscriptions.clear();
 
     // Emit disconnection event
     this.connectionListeners.forEach((listener) => listener(false));
