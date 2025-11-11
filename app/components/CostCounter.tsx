@@ -21,8 +21,8 @@ export default function CostCounter() {
   // Pricing per 1M tokens
   const COMPLETION_INPUT_PRICE = 0.45;
   const COMPLETION_OUTPUT_PRICE = 3.6;
-  const TRANSCRIPTION_INPUT_PRICE = 2.5;
-  const TRANSCRIPTION_OUTPUT_PRICE = 10.0;
+  const TRANSCRIPTION_INPUT_PRICE = 1.25;
+  const TRANSCRIPTION_OUTPUT_PRICE = 5.0;
 
   // Calculate individual costs
   const completionInputCost =
