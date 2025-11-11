@@ -1,8 +1,8 @@
 # Buddy
 
-## Contribution rules
+## Quality Enforcement
 
-- Always run and pass `./run_quality.sh` after any change
+You MUST ALWAYS run and pass `./run_quality.sh` after any change you did.
 
 ## Tech stack
 
