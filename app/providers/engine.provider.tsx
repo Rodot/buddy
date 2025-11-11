@@ -2,21 +2,14 @@ import { createContext, useContext, useRef, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { TranscriptionService } from "../services/transcription.service";
+import { transcriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
 import { completionService } from "../services/completion.service";
-import { WakeLockService } from "../services/wake-lock.service";
+import { requestWakeLock, releaseWakeLock } from "../logic/wake-lock.logic";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
 import { areLastThreeMessagesFromAssistant } from "../logic/areLastThreeMessagesFromAssistant.logic";
 import type { Personna } from "../types/domain/messageModel.type";
-
-interface TokenCounts {
-  completionInput: number;
-  completionOutput: number;
-  transcriptionInput: number;
-  transcriptionOutput: number;
-}
 
 interface LastAnswer {
   text: string;
@@ -25,7 +18,6 @@ interface LastAnswer {
 
 interface EngineContextValue {
   lastAnswer: LastAnswer | null;
-  tokenCounts: TokenCounts;
   isListeningActive: boolean;
   isThinkingActive: boolean;
   connect: (language: Language) => Promise<void>;
@@ -43,21 +35,12 @@ export function EngineProvider({ children }: EngineProviderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { i18n } = useTranslation();
-  const transcriptionServiceRef = useRef<TranscriptionService>(
-    new TranscriptionService(),
-  );
-  const wakeLockServiceRef = useRef<WakeLockService>(new WakeLockService());
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const spontaneousThinkingTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
   const [lastAnswer, setLastAnswer] = useState<LastAnswer | null>(null);
-  const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
-    completionInput: 0,
-    completionOutput: 0,
-    transcriptionInput: 0,
-    transcriptionOutput: 0,
-  });
   const [isListeningActive, setIsListeningActive] = useState(false);
   const [isThinkingActive, setIsThinkingActive] = useState(false);
 
@@ -114,7 +97,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
         language,
         personna,
       );
-      if (completionText) {
+      if (completionText?.trim()) {
         startTalking(completionText, personna);
       } else {
         startWaiting();
@@ -146,11 +129,17 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   async function connectTranscriptionService(language: Language) {
-    await transcriptionServiceRef.current.connect(language);
+    await transcriptionService.connect(language);
   }
 
   async function openChatPage() {
-    await wakeLockServiceRef.current.request();
+    const wakeLock = await requestWakeLock();
+    if (wakeLock) {
+      wakeLock.addEventListener("release", () => {
+        wakeLockRef.current = null;
+      });
+    }
+    wakeLockRef.current = wakeLock;
     navigate("/chat");
   }
 
@@ -159,8 +148,9 @@ export function EngineProvider({ children }: EngineProviderProps) {
       return;
     }
     startWaiting();
-    await transcriptionServiceRef.current.disconnect();
-    await wakeLockServiceRef.current.release();
+    await transcriptionService.disconnect();
+    await releaseWakeLock(wakeLockRef.current);
+    wakeLockRef.current = null;
     navigate("/");
   }
 
@@ -174,46 +164,40 @@ export function EngineProvider({ children }: EngineProviderProps) {
 
   // Voice activity detection event
   useEffect(() => {
-    const unsubscribe = transcriptionServiceRef.current.onVadChange(
-      (isActive) => {
-        if (isActive) {
-          startListening();
-          setIsListeningActive(true);
-        } else {
-          setIsListeningActive(false);
-        }
-      },
-    );
+    const unsubscribe = transcriptionService.onVadChange((isActive) => {
+      if (isActive) {
+        startListening();
+        setIsListeningActive(true);
+      } else {
+        setIsListeningActive(false);
+      }
+    });
     return unsubscribe;
   }, []);
 
   // Transcription completion event
   useEffect(() => {
-    const unsubscribe = transcriptionServiceRef.current.onTranscription(
-      (transcript) => {
-        const cleanedTranscript = cleanString(transcript);
-        conversationService.addMessage({
-          text: cleanedTranscript,
-          role: "user",
-        });
-        startThinking();
-      },
-    );
+    const unsubscribe = transcriptionService.onTranscription((transcript) => {
+      const cleanedTranscript = cleanString(transcript);
+      conversationService.addMessage({
+        text: cleanedTranscript,
+        role: "user",
+      });
+      startThinking();
+    });
 
     return unsubscribe;
   }, [startThinking]);
 
   // Navigate to home/chat based on transcription connection
   useEffect(() => {
-    const unsubscribe = transcriptionServiceRef.current.onConnectionChange(
-      (connected) => {
-        if (connected) {
-          openChatPage();
-        } else {
-          exitToHomePage();
-        }
-      },
-    );
+    const unsubscribe = transcriptionService.onConnectionChange((connected) => {
+      if (connected) {
+        openChatPage();
+      } else {
+        exitToHomePage();
+      }
+    });
     return unsubscribe;
   }, [navigate]);
 
@@ -225,35 +209,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return unsubscribe;
   }, []);
 
-  // Track completion token usage
-  useEffect(() => {
-    const unsubscribe = completionService.onTokenUsage((usage) => {
-      setTokenCounts((prev) => ({
-        ...prev,
-        completionInput: prev.completionInput + usage.inputTokens,
-        completionOutput: prev.completionOutput + usage.outputTokens,
-      }));
-    });
-    return unsubscribe;
-  }, []);
-
-  // Track transcription token usage
-  useEffect(() => {
-    const unsubscribe = transcriptionServiceRef.current.onTokenUsage(
-      (usage) => {
-        setTokenCounts((prev) => ({
-          ...prev,
-          transcriptionInput: prev.transcriptionInput + usage.inputTokens,
-          transcriptionOutput: prev.transcriptionOutput + usage.outputTokens,
-        }));
-      },
-    );
-    return unsubscribe;
-  }, []);
-
   const value: EngineContextValue = {
     lastAnswer,
-    tokenCounts,
     isListeningActive: isListeningActive,
     isThinkingActive: isThinkingActive,
     connect,
