@@ -5,4 +5,8 @@ export default [
   route("chat", "routes/chat.tsx"),
   route("api/openai-key", "routes/api.openai-key.ts"),
   route("api/completion", "routes/api.completion.ts"),
+  route(
+    "api/spontaneous-thinking-delay",
+    "routes/api.spontaneous-thinking-delay.ts",
+  ),
 ] satisfies RouteConfig;

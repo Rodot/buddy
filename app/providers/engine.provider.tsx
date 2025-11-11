@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { transcriptionService } from "../services/transcription.service";
 import { conversationService } from "../services/conversation.service";
 import { completionService } from "../services/completion.service";
+import { spontaneousThinkingDelayService } from "../services/spontaneous-thinking-delay.service";
 import { requestWakeLock, releaseWakeLock } from "../logic/wake-lock.logic";
 import { cleanString } from "../logic/cleanString.logic";
 import type { Language } from "../consts/i18n.const";
@@ -70,12 +71,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     }
   }
 
-  function startWaiting() {
+  async function startWaiting() {
     console.log("[start waiting]");
     clearTimeouts();
     clearTranscriptionTimeout();
     setLastAnswer(null);
-    setLastTranscription(null);
 
     const conversation = conversationService.get();
     if (areLastTwoMessagesFromAssistant(conversation)) {
@@ -85,13 +85,18 @@ export function EngineProvider({ children }: EngineProviderProps) {
       return;
     }
 
+    // Calculate dynamic delay based on conversation context
+    const delayMinutes =
+      await spontaneousThinkingDelayService.calculate(conversation);
+    const delayMs = delayMinutes * 60 * 1000;
+
     spontaneousThinkingTimeoutRef.current = setTimeout(() => {
       conversationService.addMessage({
         text: "{no-answer-from-user}",
         role: "user",
       });
       startThinking();
-    }, 30000);
+    }, delayMs);
   }
 
   function startListening() {
