@@ -126,7 +126,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
   }
 
   function startTalking(message: string) {
-    console.log("[start talking]", message);
+    console.log("[start talking]");
     clearTimeouts();
     const cleanedMessage = cleanString(message);
     setLastAnswer(cleanedMessage);
