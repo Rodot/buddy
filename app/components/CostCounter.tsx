@@ -1,8 +1,21 @@
-import { useState } from "react";
-import { useEngine } from "../providers/engine.provider";
+import { useState, useEffect } from "react";
+import { completionService } from "../services/completion.service";
+import { transcriptionService } from "../services/transcription.service";
+
+interface TokenCounts {
+  completionInput: number;
+  completionOutput: number;
+  transcriptionInput: number;
+  transcriptionOutput: number;
+}
 
 export default function CostCounter() {
-  const { tokenCounts } = useEngine();
+  const [tokenCounts, setTokenCounts] = useState<TokenCounts>({
+    completionInput: 0,
+    completionOutput: 0,
+    transcriptionInput: 0,
+    transcriptionOutput: 0,
+  });
   const [showDetail, setShowDetail] = useState(false);
 
   // Pricing per 1M tokens
@@ -27,6 +40,30 @@ export default function CostCounter() {
     completionOutputCost +
     transcriptionInputCost +
     transcriptionOutputCost;
+
+  // Track completion token usage
+  useEffect(() => {
+    const unsubscribe = completionService.onTokenUsage((usage) => {
+      setTokenCounts((prev) => ({
+        ...prev,
+        completionInput: prev.completionInput + usage.inputTokens,
+        completionOutput: prev.completionOutput + usage.outputTokens,
+      }));
+    });
+    return unsubscribe;
+  }, []);
+
+  // Track transcription token usage
+  useEffect(() => {
+    const unsubscribe = transcriptionService.onTokenUsage((usage) => {
+      setTokenCounts((prev) => ({
+        ...prev,
+        transcriptionInput: prev.transcriptionInput + usage.inputTokens,
+        transcriptionOutput: prev.transcriptionOutput + usage.outputTokens,
+      }));
+    });
+    return unsubscribe;
+  }, []);
 
   return (
     <div
