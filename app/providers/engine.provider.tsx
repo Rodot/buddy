@@ -109,7 +109,8 @@ export function EngineProvider({ children }: EngineProviderProps) {
     clearTimeouts();
     const conversation = conversationService.get();
     const language = i18n.language as Language;
-    const personna: Personna = Math.random() < 0.5 ? "bully" : "buddy";
+    // const personna: Personna = Math.random() < 0.5 ? "bully" : "buddy";
+    const personna: Personna = "bully";
     try {
       const completionText = await completionService.request(
         conversation,
