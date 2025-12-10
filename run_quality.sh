@@ -1,8 +1,13 @@
 #!/bin/bash
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_PATH" || exit
-
 source ./steps/common.sh
+set -e
+
+if [[ ! -f .env ]]; then
+	echo "❌ .env file not found"
+	exit 1
+fi
 
 run_quality_checks() {
 	run_timed "Docker Check" "ensure_docker_running"
@@ -34,7 +39,7 @@ run_quality_checks() {
 	run_timed "Playwright Install" "npx --yes playwright install chromium 2>&1"
 
 	docker rm -f buddy-test 2>/dev/null || true
-	docker run -d --name buddy-test -p 4321:4321 --env-file .env buddy:test >/dev/null 2>&1
+	docker run -d --name buddy-test -p 4321:4321 --env-file .env buddy:test
 
 	run_timed "Playwright Test" "npm run test 2>&1"
 
